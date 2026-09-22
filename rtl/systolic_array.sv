@@ -1,5 +1,7 @@
+`timescale 1ns/1ps
+
 module systolic_array #(
-    parameter N          = 8,
+    parameter N          = 2,
     parameter DATA_WIDTH = 8,
     parameter ACC_WIDTH  = 32
 ) (
@@ -7,46 +9,55 @@ module systolic_array #(
     input  logic rst,
 
     input  logic signed [DATA_WIDTH-1:0] a_in [N],
-    input  logic signed [DATA_WIDTH-1:0] w_in [N],
+    input  logic signed [DATA_WIDTH-1:0] b_in [N],
 
-    input  logic signed [ACC_WIDTH-1:0] psum_in [N],
-
-    output logic signed [ACC_WIDTH-1:0] psum_out [N]
+    output wire signed [ACC_WIDTH-1:0] c_out [N][N]
 );
 
-    logic signed [DATA_WIDTH-1:0] a_pipe [N][N];
-    logic signed [DATA_WIDTH-1:0] w_pipe [N][N];
+    /*
+     * A moves from left -> right.
+     *
+     * a_wire[i][0]     = external input for row i
+     * a_wire[i][j+1]   = output of PE(i,j)
+     */
+    wire signed [DATA_WIDTH-1:0] a_wire [N][N+1];
 
-    logic signed [ACC_WIDTH-1:0] psum_pipe [N][N];
+    /*
+     * B moves from top -> bottom.
+     *
+     * b_wire[0][j]     = external input for column j
+     * b_wire[i+1][j]   = output of PE(i,j)
+     */
+    wire signed [DATA_WIDTH-1:0] b_wire [N+1][N];
 
-    genvar i, j;
+    genvar i;
+    genvar j;
 
+    /*
+     * Connect A inputs to left side of array.
+     */
     generate
-        for (i = 0; i < N; i++) begin : ROW
-            for (j = 0; j < N; j++) begin : COL
+        for (i = 0; i < N; i = i + 1) begin : A_INPUT
+            assign a_wire[i][0] = a_in[i];
+        end
+    endgenerate
 
-                logic signed [DATA_WIDTH-1:0] pe_a_in;
-                logic signed [DATA_WIDTH-1:0] pe_w_in;
-                logic signed [ACC_WIDTH-1:0]  pe_psum_in;
+    /*
+     * Connect B inputs to top side of array.
+     */
+    generate
+        for (j = 0; j < N; j = j + 1) begin : B_INPUT
+            assign b_wire[0][j] = b_in[j];
+        end
+    endgenerate
 
-                logic signed [DATA_WIDTH-1:0] pe_a_out;
-                logic signed [DATA_WIDTH-1:0] pe_w_out;
-                logic signed [ACC_WIDTH-1:0]  pe_psum_out;
+    /*
+     * N x N PE array.
+     */
+    generate
+        for (i = 0; i < N; i = i + 1) begin : ROW
 
-                if (j == 0)
-                    assign pe_a_in = a_in[i];
-                else
-                    assign pe_a_in = a_pipe[i][j-1];
-
-                if (i == 0)
-                    assign pe_w_in = w_in[j];
-                else
-                    assign pe_w_in = w_pipe[i-1][j];
-
-                if (j == 0)
-                    assign pe_psum_in = psum_in[i];
-                else
-                    assign pe_psum_in = psum_pipe[i][j-1];
+            for (j = 0; j < N; j = j + 1) begin : COL
 
                 pe #(
                     .DATA_WIDTH(DATA_WIDTH),
@@ -55,25 +66,18 @@ module systolic_array #(
                     .clk(clk),
                     .rst(rst),
 
-                    .a_in(pe_a_in),
-                    .w_in(pe_w_in),
-                    .psum_in(pe_psum_in),
+                    .a_in(a_wire[i][j]),
+                    .b_in(b_wire[i][j]),
 
-                    .a_out(pe_a_out),
-                    .w_out(pe_w_out),
-                    .psum_out(pe_psum_out)
+                    .a_out(a_wire[i][j+1]),
+                    .b_out(b_wire[i+1][j]),
+
+                    .acc_out(c_out[i][j])
                 );
 
-                assign a_pipe[i][j]    = pe_a_out;
-                assign w_pipe[i][j]    = pe_w_out;
-                assign psum_pipe[i][j] = pe_psum_out;
-
             end
+
         end
     endgenerate
-
-    for (genvar k = 0; k < N; k++) begin
-        assign psum_out[k] = psum_pipe[k][N-1];
-    end
 
 endmodule
