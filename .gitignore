@@ -1,0 +1,13 @@
+# Simulation outputs
+results/*.vcd
+results/*.out
+results/*.log
+results/*.fst
+
+# Compiled simulation executables
+results/systolic_tb
+systolic_sim
+systolic_random_sim
+
+# General generated files
+*.vvp
