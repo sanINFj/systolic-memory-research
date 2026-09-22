@@ -29,11 +29,8 @@ module pe #(
             acc_out <= '0;
         end
         else begin
-            // Forward operands
-            a_out <= a_in;
-            b_out <= b_in;
-
-            // Local accumulation
+            a_out   <= a_in;
+            b_out   <= b_in;
             acc_out <= acc_out + product;
         end
     end

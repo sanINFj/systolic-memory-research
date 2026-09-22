@@ -14,49 +14,26 @@ module systolic_array #(
     output wire signed [ACC_WIDTH-1:0] c_out [N][N]
 );
 
-    /*
-     * A moves from left -> right.
-     *
-     * a_wire[i][0]     = external input for row i
-     * a_wire[i][j+1]   = output of PE(i,j)
-     */
     wire signed [DATA_WIDTH-1:0] a_wire [N][N+1];
-
-    /*
-     * B moves from top -> bottom.
-     *
-     * b_wire[0][j]     = external input for column j
-     * b_wire[i+1][j]   = output of PE(i,j)
-     */
     wire signed [DATA_WIDTH-1:0] b_wire [N+1][N];
 
     genvar i;
     genvar j;
 
-    /*
-     * Connect A inputs to left side of array.
-     */
     generate
         for (i = 0; i < N; i = i + 1) begin : A_INPUT
             assign a_wire[i][0] = a_in[i];
         end
     endgenerate
 
-    /*
-     * Connect B inputs to top side of array.
-     */
     generate
         for (j = 0; j < N; j = j + 1) begin : B_INPUT
             assign b_wire[0][j] = b_in[j];
         end
     endgenerate
 
-    /*
-     * N x N PE array.
-     */
     generate
         for (i = 0; i < N; i = i + 1) begin : ROW
-
             for (j = 0; j < N; j = j + 1) begin : COL
 
                 pe #(
@@ -76,7 +53,6 @@ module systolic_array #(
                 );
 
             end
-
         end
     endgenerate
 
