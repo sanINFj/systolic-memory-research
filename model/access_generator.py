@@ -1,118 +1,101 @@
 """
-Generate A/B memory accesses for an 8x8 systolic array.
+Generate the operand access pattern seen by an 8x8 systolic array.
 
-This is a simplified access-pattern model.
+For a standard skewed systolic schedule:
 
-The purpose is to determine which matrix elements are
-requested by the systolic array at each cycle.
+    A request:
+        A[i][k] where k = t - i
+
+    B request:
+        B[k][j] where k = t - j
+
+M and N may be smaller than 8 for edge tiles.
 """
 
 ARRAY_SIZE = 8
 
 
-def generate_accesses(K):
+def generate_accesses(K, M=ARRAY_SIZE, N=ARRAY_SIZE):
     """
-    Generate A and B accesses for an 8x8 systolic array.
+    Generate A/B requests for one output tile.
 
-    Returns a list of cycles.
+    Parameters:
+        K : GEMM reduction dimension
+        M : active output rows, 1..8
+        N : active output columns, 1..8
 
-    Each cycle contains:
-
-        A accesses
-        B accesses
-
-    represented as:
-
-        (row, column)
+    Returns:
+        List of dictionaries containing A and B requests
+        for each systolic injection cycle.
     """
+
+    if M < 1 or M > ARRAY_SIZE:
+        raise ValueError(
+            f"M must be between 1 and {ARRAY_SIZE}"
+        )
+
+    if N < 1 or N > ARRAY_SIZE:
+        raise ValueError(
+            f"N must be between 1 and {ARRAY_SIZE}"
+        )
+
+    if K < 1:
+        raise ValueError("K must be >= 1")
+
+    total_cycles = K + M + N - 2
 
     cycles = []
-
-    # Systolic computation proceeds through K.
-    #
-    # We use the standard skewed input schedule:
-    #
-    # A[i][k] enters row i at cycle i + k
-    # B[k][j] enters column j at cycle j + k
-
-    total_cycles = K + 2 * (ARRAY_SIZE - 1)
 
     for t in range(total_cycles):
 
         A_accesses = []
         B_accesses = []
 
-        # --------------------------------------------
-        # A accesses
-        # --------------------------------------------
-
-        for i in range(ARRAY_SIZE):
+        # A enters from the left.
+        for i in range(M):
 
             k = t - i
 
             if 0 <= k < K:
+                A_accesses.append((i, k))
 
-                A_accesses.append(
-                    (i, k)
-                )
-
-        # --------------------------------------------
-        # B accesses
-        # --------------------------------------------
-
-        for j in range(ARRAY_SIZE):
+        # B enters from the top.
+        for j in range(N):
 
             k = t - j
 
             if 0 <= k < K:
+                B_accesses.append((k, j))
 
-                B_accesses.append(
-                    (k, j)
-                )
-
-        cycles.append({
-            "cycle": t,
-            "A": A_accesses,
-            "B": B_accesses
-        })
+        cycles.append(
+            {
+                "cycle": t,
+                "A": A_accesses,
+                "B": B_accesses,
+            }
+        )
 
     return cycles
 
 
-def print_accesses(K=8):
+if __name__ == "__main__":
 
-    print("=" * 70)
-    print("SYSTOLIC ACCESS GENERATOR")
-    print("=" * 70)
+    K = 8
 
-    print(
-        f"Array: {ARRAY_SIZE} x {ARRAY_SIZE}"
+    accesses = generate_accesses(
+        K=K,
+        M=8,
+        N=8,
     )
 
-    print(
-        f"K: {K}"
-    )
-
+    print(f"Access trace for 8x8x{K}")
+    print(f"Injection cycles: {len(accesses)}")
     print()
 
-    accesses = generate_accesses(K)
-
-    for entry in accesses:
+    for cycle in accesses:
 
         print(
-            f"Cycle {entry['cycle']}:"
+            f"cycle {cycle['cycle']:2d}: "
+            f"A={cycle['A']} "
+            f"B={cycle['B']}"
         )
-
-        print(
-            f"  A: {entry['A']}"
-        )
-
-        print(
-            f"  B: {entry['B']}"
-        )
-
-        print()
-
-
-if __name__ == "__main__":
-    print_accesses()

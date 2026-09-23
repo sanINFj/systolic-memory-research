@@ -1,168 +1,275 @@
 """
-Bank-conflict model.
+Bank-service-latency model.
 
-Takes systolic-array memory accesses and determines
-whether multiple requests target the same SRAM bank
-during the same cycle.
+Assumption:
+
+    Each SRAM bank can service one read per cycle.
+
+For every injection cycle:
+
+    bank_load[b] =
+        number of requests assigned to bank b
+
+    service_cycles =
+        max(bank_load)
+
+    stall_cycles =
+        service_cycles - 1
+
+The ideal lower bound is:
+
+    ceil(total_requests / NUM_BANKS)
+
+This model measures memory-service contention only.
+It does not yet model the complete accelerator pipeline.
 """
 
+
+import math
+
+from access_generator import generate_accesses
 from banking_model import (
+    NUM_BANKS,
+    POLICIES,
     get_bank,
-    NUM_BANKS
-)
-
-from access_generator import (
-    generate_accesses
 )
 
 
-def count_bank_conflicts(
-    accesses,
-    policy
+def bank_loads_for_cycle(
+    cycle,
+    K,
+    N,
+    policy,
 ):
     """
-    Count bank conflicts for one complete access trace.
-
-    A conflict occurs when more than one request targets
-    the same bank during the same cycle.
+    Return request count for every SRAM bank.
     """
 
-    total_conflicts = 0
-    total_requests = 0
+    loads = [
+        0
+        for _ in range(NUM_BANKS)
+    ]
 
-    cycle_results = []
+    # -------------------------
+    # A requests
+    # -------------------------
 
-    for entry in accesses:
+    for row, k in cycle["A"]:
 
-        bank_counts = [
-            0
-            for _ in range(NUM_BANKS)
-        ]
+        bank = get_bank(
+            operand="A",
+            row=row,
+            index=k,
+            K=K,
+            N=N,
+            policy=policy,
+        )
 
-        requests = []
+        loads[bank] += 1
 
-        # --------------------------------------------
-        # A requests
-        # --------------------------------------------
+    # -------------------------
+    # B requests
+    # -------------------------
 
-        for row, column in entry["A"]:
+    for k, col in cycle["B"]:
 
-            # Simple linear address for A.
-            address = (
-                (row * 1024)
-                + (column * 4)
-            )
+        bank = get_bank(
+            operand="B",
+            row=k,
+            index=col,
+            K=K,
+            N=N,
+            policy=policy,
+        )
 
-            bank = get_bank(
-                address,
-                policy=policy,
-                row=row,
-                column=column
-            )
+        loads[bank] += 1
 
-            bank_counts[bank] += 1
-            requests.append(bank)
+    return loads
 
-        # --------------------------------------------
-        # B requests
-        # --------------------------------------------
 
-        for row, column in entry["B"]:
+def analyze_cycle(
+    cycle,
+    K,
+    N,
+    policy,
+):
+    """
+    Analyze one injection cycle.
+    """
 
-            # Simple linear address for B.
-            address = (
-                (row * 1024)
-                + (column * 4)
-            )
+    loads = bank_loads_for_cycle(
+        cycle=cycle,
+        K=K,
+        N=N,
+        policy=policy,
+    )
 
-            bank = get_bank(
-                address,
-                policy=policy,
-                row=row,
-                column=column
-            )
+    total_requests = sum(loads)
 
-            bank_counts[bank] += 1
-            requests.append(bank)
+    if total_requests == 0:
 
-        # --------------------------------------------
-        # Count conflicts
-        # --------------------------------------------
+        service_cycles = 0
+        stall_cycles = 0
+        minimum_service_cycles = 0
+        minimum_stall_cycles = 0
 
-        cycle_conflicts = 0
+    else:
 
-        for count in bank_counts:
+        service_cycles = max(loads)
 
-            if count > 1:
+        stall_cycles = max(
+            0,
+            service_cycles - 1,
+        )
 
-                cycle_conflicts += (
-                    count - 1
-                )
+        minimum_service_cycles = math.ceil(
+            total_requests / NUM_BANKS
+        )
 
-        total_conflicts += cycle_conflicts
-        total_requests += len(requests)
-
-        cycle_results.append({
-            "cycle": entry["cycle"],
-            "bank_counts": bank_counts,
-            "conflicts": cycle_conflicts
-        })
+        minimum_stall_cycles = max(
+            0,
+            minimum_service_cycles - 1,
+        )
 
     return {
-        "policy": policy,
-        "total_conflicts": total_conflicts,
-        "total_requests": total_requests,
-        "cycles": cycle_results
+        "cycle": cycle["cycle"],
+        "loads": loads,
+        "requests": total_requests,
+        "service_cycles": service_cycles,
+        "stall_cycles": stall_cycles,
+        "minimum_service_cycles":
+            minimum_service_cycles,
+        "minimum_stall_cycles":
+            minimum_stall_cycles,
     }
 
 
-def print_conflict_analysis():
+def analyze_policy(
+    K,
+    N=8,
+    M=8,
+    policy="modulo",
+):
+    """
+    Analyze one complete output tile.
+    """
 
-    K = 8
-
-    accesses = generate_accesses(K)
-
-    print("=" * 70)
-    print("BANK CONFLICT ANALYSIS")
-    print("=" * 70)
-
-    print(
-        f"Array: 8x8"
+    access_trace = generate_accesses(
+        K=K,
+        M=M,
+        N=N,
     )
 
-    print(
-        f"K: {K}"
-    )
+    cycle_results = []
 
-    print()
+    total_requests = 0
+    total_service_cycles = 0
+    total_stall_cycles = 0
+    total_minimum_service_cycles = 0
+    total_minimum_stall_cycles = 0
 
-    for policy in [
-        "modulo",
-        "row",
-        "column"
-    ]:
+    for cycle in access_trace:
 
-        result = count_bank_conflicts(
-            accesses,
-            policy
+        result = analyze_cycle(
+            cycle=cycle,
+            K=K,
+            N=N,
+            policy=policy,
         )
 
-        print(
-            f"Policy: {policy}"
+        cycle_results.append(result)
+
+        total_requests += (
+            result["requests"]
         )
 
-        print(
-            f"  Requests : "
-            f"{result['total_requests']}"
+        total_service_cycles += (
+            result["service_cycles"]
         )
 
-        print(
-            f"  Conflicts: "
-            f"{result['total_conflicts']}"
+        total_stall_cycles += (
+            result["stall_cycles"]
         )
 
-        print()
+        total_minimum_service_cycles += (
+            result["minimum_service_cycles"]
+        )
+
+        total_minimum_stall_cycles += (
+            result["minimum_stall_cycles"]
+        )
+
+    return {
+        "K": K,
+        "M": M,
+        "N": N,
+        "policy": policy,
+
+        "requests":
+            total_requests,
+
+        "service_cycles":
+            total_service_cycles,
+
+        "stall_cycles":
+            total_stall_cycles,
+
+        "minimum_service_cycles":
+            total_minimum_service_cycles,
+
+        "minimum_stall_cycles":
+            total_minimum_stall_cycles,
+
+        "excess_stall_cycles":
+            (
+                total_stall_cycles
+                - total_minimum_stall_cycles
+            ),
+
+        "cycles":
+            cycle_results,
+    }
 
 
 if __name__ == "__main__":
-    print_conflict_analysis()
+
+    print(
+        "Bank Service-Latency Model"
+    )
+    print(
+        "=========================="
+    )
+
+    for K in [
+        8,
+        32,
+        64,
+        128,
+        256,
+    ]:
+
+        print()
+        print(f"K = {K}")
+
+        for policy in POLICIES:
+
+            result = analyze_policy(
+                K=K,
+                M=8,
+                N=8,
+                policy=policy,
+            )
+
+            print(
+                f"{policy:15s} "
+                f"requests="
+                f"{result['requests']:5d} "
+                f"service="
+                f"{result['service_cycles']:5d} "
+                f"stall="
+                f"{result['stall_cycles']:5d} "
+                f"minimum="
+                f"{result['minimum_stall_cycles']:5d} "
+                f"excess="
+                f"{result['excess_stall_cycles']:5d}"
+            )
