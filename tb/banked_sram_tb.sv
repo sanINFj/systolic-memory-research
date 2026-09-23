@@ -1,39 +1,14 @@
 `timescale 1ns/1ps
 
-// ============================================================
-// Banked SRAM Testbench
-// ============================================================
-//
-// Tests:
-//
-//   1. One request to each of 8 banks.
-//      Expected: all 8 banks can service in parallel.
-//
-//   2. Eight requests to bank 0.
-//      Expected: requests are serialized by the bank FIFO.
-//
-// This test focuses on:
-//
-//   request routing
-//   FIFO behavior
-//   one-read-per-bank-per-cycle
-//   response tags
-//
-// ============================================================
-
 module banked_sram_tb;
 
-    localparam NUM_BANKS = 8;
-    localparam ENQ_WIDTH = 16;
+    localparam NUM_BANKS  = 8;
+    localparam ENQ_WIDTH  = 16;
     localparam ADDR_WIDTH = 13;
-    localparam TAG_WIDTH = 8;
+    localparam TAG_WIDTH  = 8;
 
     logic clk;
     logic rst;
-
-    // --------------------------------------------------------
-    // Request interface
-    // --------------------------------------------------------
 
     logic [ENQ_WIDTH-1:0]
         req_valid;
@@ -50,10 +25,6 @@ module banked_sram_tb;
         ENQ_WIDTH*TAG_WIDTH-1:0
     ]
         req_tag;
-
-    // --------------------------------------------------------
-    // Response interface
-    // --------------------------------------------------------
 
     logic [NUM_BANKS-1:0]
         rsp_valid;
@@ -72,49 +43,42 @@ module banked_sram_tb;
 
     integer i;
 
-    // --------------------------------------------------------
+
+    // ========================================================
     // DUT
-    // --------------------------------------------------------
+    // ========================================================
 
     banked_sram dut (
-
         .clk(clk),
-
         .rst(rst),
 
         .req_valid(req_valid),
-
         .req_bank(req_bank),
-
         .req_addr(req_addr),
-
         .req_tag(req_tag),
 
         .rsp_valid(rsp_valid),
-
         .rsp_data(rsp_data),
-
         .rsp_tag(rsp_tag),
 
         .overflow(overflow)
-
     );
 
-    // --------------------------------------------------------
-    // Clock
-    // --------------------------------------------------------
+
+    // ========================================================
+    // CLOCK
+    // ========================================================
 
     initial begin
-
         clk = 1'b0;
 
         forever #5 clk = ~clk;
-
     end
 
-    // --------------------------------------------------------
-    // Clear request interface
-    // --------------------------------------------------------
+
+    // ========================================================
+    // CLEAR REQUESTS
+    // ========================================================
 
     task clear_requests;
 
@@ -123,10 +87,8 @@ module banked_sram_tb;
         begin
 
             req_valid = '0;
-
-            req_addr = '0;
-
-            req_tag = '0;
+            req_addr  = '0;
+            req_tag   = '0;
 
             for (
                 j = 0;
@@ -142,27 +104,144 @@ module banked_sram_tb;
 
     endtask
 
-    // --------------------------------------------------------
-    // Main test
-    // --------------------------------------------------------
+
+    // ========================================================
+    // RESPONSE CHECKER
+    // ========================================================
+
+    always @(posedge clk) begin
+
+        for (
+            i = 0;
+            i < NUM_BANKS;
+            i = i + 1
+        ) begin
+
+            if (rsp_valid[i]) begin
+
+                $display(
+                    "time=%0t bank=%0d tag=%0h data=%0h",
+                    $time,
+                    i,
+                    rsp_tag[
+                        i*TAG_WIDTH
+                        +:
+                        TAG_WIDTH
+                    ],
+                    rsp_data[
+                        i*8
+                        +:
+                        8
+                    ]
+                );
+
+                // ------------------------------------------------
+                // TEST 1B DATA CHECK
+                //
+                // Expected:
+                // bank 0 -> A0
+                // bank 1 -> A1
+                // ...
+                // bank 7 -> A7
+                // ------------------------------------------------
+
+                if (
+                    rsp_tag[
+                        i*TAG_WIDTH
+                        +:
+                        TAG_WIDTH
+                    ] >= 8'h30
+                    &&
+                    rsp_tag[
+                        i*TAG_WIDTH
+                        +:
+                        TAG_WIDTH
+                    ] <= 8'h37
+                ) begin
+
+                    if (
+                        rsp_data[
+                            i*8
+                            +:
+                            8
+                        ]
+                        !==
+                        (8'hA0 + i)
+                    ) begin
+
+                        $display("");
+                        $display(
+                            "FAIL: SRAM data mismatch"
+                        );
+
+                        $display(
+                            "bank=%0d expected=%0h got=%0h",
+                            i,
+                            8'hA0 + i,
+                            rsp_data[
+                                i*8
+                                +:
+                                8
+                            ]
+                        );
+
+                        $finish;
+
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+
+    // ========================================================
+    // TEST SEQUENCE
+    // ========================================================
 
     initial begin
+
+        // ----------------------------------------------------
+        // INITIALIZATION
+        // ----------------------------------------------------
 
         rst = 1'b1;
 
         clear_requests();
 
+
+        // ----------------------------------------------------
+        // INITIALIZE SRAM
+        //
+        // Known values allow us to verify that the request
+        // actually reaches the correct SRAM bank/address.
+        // ----------------------------------------------------
+
+        dut.mem[0][0] = 8'hA0;
+        dut.mem[1][1] = 8'hA1;
+        dut.mem[2][2] = 8'hA2;
+        dut.mem[3][3] = 8'hA3;
+        dut.mem[4][4] = 8'hA4;
+        dut.mem[5][5] = 8'hA5;
+        dut.mem[6][6] = 8'hA6;
+        dut.mem[7][7] = 8'hA7;
+
+
+        // ----------------------------------------------------
+        // RELEASE RESET
+        // ----------------------------------------------------
+
         #20;
 
         rst = 1'b0;
 
+
         // ====================================================
         // TEST 1
-        //
-        // One request to every bank.
-        //
-        // All eight banks should be able to service one
-        // request in parallel.
+        // One request per bank
         // ====================================================
 
         $display("");
@@ -198,24 +277,77 @@ module banked_sram_tb;
                 i*TAG_WIDTH
                 +:
                 TAG_WIDTH
-            ] =
-                8'h10 + i;
+            ] = 8'h10 + i;
 
         end
+
 
         @(negedge clk);
 
         clear_requests();
 
+
         repeat (4)
             @(negedge clk);
 
+
+        // ====================================================
+        // TEST 1B
+        // Verify actual SRAM data
+        // ====================================================
+
+        $display("");
+        $display(
+            "=============================================="
+        );
+        $display(
+            "TEST 1B: SRAM data correctness"
+        );
+        $display(
+            "=============================================="
+        );
+
+        @(negedge clk);
+
+        for (
+            i = 0;
+            i < 8;
+            i = i + 1
+        ) begin
+
+            req_valid[i] = 1'b1;
+
+            req_bank[i] = i[2:0];
+
+            req_addr[
+                i*ADDR_WIDTH
+                +:
+                ADDR_WIDTH
+            ] = i;
+
+            req_tag[
+                i*TAG_WIDTH
+                +:
+                TAG_WIDTH
+            ] = 8'h30 + i;
+
+        end
+
+
+        @(negedge clk);
+
+        clear_requests();
+
+
+        repeat (4)
+            @(negedge clk);
+
+
         // ====================================================
         // TEST 2
+        // Eight requests to one bank
         //
-        // Eight requests all target bank 0.
-        //
-        // The FIFO must serialize them.
+        // This verifies FIFO serialization.
         // ====================================================
 
         $display("");
@@ -245,27 +377,28 @@ module banked_sram_tb;
                 i*ADDR_WIDTH
                 +:
                 ADDR_WIDTH
-            ] =
-                13'd100 + i;
+            ] = 13'd100 + i;
 
             req_tag[
                 i*TAG_WIDTH
                 +:
                 TAG_WIDTH
-            ] =
-                8'h20 + i;
+            ] = 8'h20 + i;
 
         end
+
 
         @(negedge clk);
 
         clear_requests();
 
+
         repeat (12)
             @(negedge clk);
 
+
         // ====================================================
-        // Result
+        // FINAL CHECK
         // ====================================================
 
         if (overflow) begin
@@ -285,43 +418,8 @@ module banked_sram_tb;
 
         end
 
+
         $finish;
-
-    end
-
-    // --------------------------------------------------------
-    // Response monitor
-    // --------------------------------------------------------
-
-    always @(posedge clk) begin
-
-        for (
-            i = 0;
-            i < NUM_BANKS;
-            i = i + 1
-        ) begin
-
-            if (rsp_valid[i]) begin
-
-                $display(
-                    "time=%0t bank=%0d tag=%0h data=%0h",
-                    $time,
-                    i,
-                    rsp_tag[
-                        i*TAG_WIDTH
-                        +:
-                        TAG_WIDTH
-                    ],
-                    rsp_data[
-                        i*8
-                        +:
-                        8
-                    ]
-                );
-
-            end
-
-        end
 
     end
 
