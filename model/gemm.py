@@ -1,48 +1,41 @@
 import numpy as np
 
 
-def gemm(a, b):
+def gemm(A, B):
     """
-    Golden reference for C = A @ B.
+    Golden GEMM reference.
 
-    Inputs:
-        a: M x K int8 matrix
-        b: K x N int8 matrix
-
-    Output:
-        M x N int32 matrix
+    A: M x K
+    B: K x N
+    Returns: M x N
     """
+    return A.astype(np.int32) @ B.astype(np.int32)
 
-    a = np.asarray(a, dtype=np.int32)
-    b = np.asarray(b, dtype=np.int32)
 
-    return a @ b
+def generate_gemm(M, K, N, seed=0):
+    """
+    Generate deterministic INT8 GEMM operands.
+    """
+    rng = np.random.default_rng(seed)
+
+    A = rng.integers(-8, 8, size=(M, K), dtype=np.int8)
+    B = rng.integers(-8, 8, size=(K, N), dtype=np.int8)
+
+    return A, B
 
 
 if __name__ == "__main__":
-    a = np.array(
-        [
-            [1, 2],
-            [3, 4],
-        ],
-        dtype=np.int8,
-    )
+    M, K, N = 8, 8, 8
 
-    b = np.array(
-        [
-            [5, 6],
-            [7, 8],
-        ],
-        dtype=np.int8,
-    )
+    A, B = generate_gemm(M, K, N)
 
-    c = gemm(a, b)
+    C = gemm(A, B)
 
     print("A:")
-    print(a)
+    print(A)
 
     print("\nB:")
-    print(b)
+    print(B)
 
     print("\nC = A @ B:")
-    print(c)
+    print(C)

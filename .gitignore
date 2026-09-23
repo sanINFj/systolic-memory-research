@@ -11,3 +11,7 @@ systolic_random_sim
 
 # General generated files
 *.vvp
+__pycache__/
+*.pyc
+*.pyo
+*.swp
