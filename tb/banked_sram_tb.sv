@@ -70,6 +70,8 @@ module banked_sram_tb;
     // ========================================================
 
     initial begin
+	$dumpfile("sim/banked_sram_tb.vcd");
+	$dumpvars(0, banked_sram_tb);
         clk = 1'b0;
 
         forever #5 clk = ~clk;
