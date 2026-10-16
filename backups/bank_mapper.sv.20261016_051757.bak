@@ -1,0 +1,134 @@
+
+`timescale 1ns/1ps
+
+// Physical SRAM mapping for 8 banks x 8192 bytes.
+//
+// BANK_POLICY:
+//   0 = modulo
+//   1 = split
+//   2 = operand-aware
+//   3 = XOR
+//
+// A: row = output row i, index = reduction coordinate k.
+// B: row = reduction coordinate k, index = output column j.
+//
+// local_addr is a BYTE address within the selected bank.
+// Only resident tiles that fit the selected layout are valid.
+
+module bank_mapper #(
+    parameter BANK_POLICY = 0
+) (
+    input  logic        is_A,
+    input  logic [7:0]  row,
+    input  logic [7:0]  index,
+    input  logic [15:0] K,
+    input  logic [15:0] N,
+    output logic [2:0]  bank,
+    output logic [12:0] local_addr
+);
+
+    logic [31:0] row_ext;
+    logic [31:0] index_ext;
+    logic [31:0] K_ext;
+    logic [31:0] N_ext;
+    logic [31:0] global_addr;
+    logic [31:0] local_full;
+    logic [31:0] stride4;
+    logic [31:0] stride8;
+
+    always_comb begin
+        row_ext   = {24'd0, row};
+        index_ext = {24'd0, index};
+        K_ext     = {16'd0, K};
+        N_ext     = {16'd0, N};
+
+        global_addr = 32'd0;
+        local_full  = 32'd0;
+        stride4     = (N_ext + 32'd3) >> 2;
+        stride8     = (N_ext + 32'd7) >> 3;
+        bank        = 3'd0;
+
+        case (BANK_POLICY)
+
+            // Original row-major byte addressing:
+            // bank = byte_address % 8
+            // local = byte_address / 8
+            0: begin
+                if (is_A)
+                    global_addr = row_ext * K_ext + index_ext;
+                else
+                    global_addr = 32'd32768
+                                + row_ext * N_ext + index_ext;
+
+                bank       = global_addr[2:0];
+                local_full = global_addr >> 3;
+            end
+
+            // A uses banks 0..3.
+            // B uses banks 4..7.
+            // Each operand is compacted within its assigned banks.
+            1: begin
+                if (is_A) begin
+                    bank = {1'b0, row[1:0]};
+                    local_full = (row_ext >> 2) * K_ext
+                               + index_ext;
+                end
+                else begin
+                    bank = 3'd4 + {1'b0, index[1:0]};
+                    stride4 = (N_ext + 32'd3) >> 2;
+                    local_full = row_ext * stride4
+                               + (index_ext >> 2);
+                end
+            end
+
+            // A is placed in the lower half of each bank.
+            // B is placed in the upper half of each bank.
+            2: begin
+                if (is_A) begin
+                    bank = row[2:0];
+                    local_full = (row_ext >> 3) * K_ext
+                               + index_ext;
+                end
+                else begin
+                    bank = index[2:0] + 3'd4;
+                    stride8 = (N_ext + 32'd7) >> 3;
+                    local_full = 32'd4096
+                               + row_ext * stride8
+                               + (index_ext >> 3);
+                end
+            end
+
+            // XOR bank selection with compact, collision-free
+            // local addressing for each bank's coordinate groups.
+            3: begin
+                if (is_A) begin
+                    bank = row[2:0] ^ index[2:0];
+                    stride8 = (K_ext + 32'd7) >> 3;
+                    local_full =
+                        (((row_ext >> 3) * stride8)
+                         + (index_ext >> 3)) * 32'd8
+                        + (row_ext & 32'd7);
+                end
+                else begin
+                    bank = row[2:0] ^ index[2:0];
+                    stride8 = (N_ext + 32'd7) >> 3;
+                    local_full = 32'd4096
+                        + ((((row_ext >> 3) * stride8)
+                            + (index_ext >> 3)) * 32'd8)
+                        + (row_ext & 32'd7);
+                end
+            end
+
+            default: begin
+                bank       = 3'd0;
+                local_full = 32'd0;
+            end
+
+        endcase
+
+        // The checker must establish that local_full is in range.
+        // This interface has no error/valid output for invalid layouts.
+        local_addr = local_full[12:0];
+    end
+
+endmodule

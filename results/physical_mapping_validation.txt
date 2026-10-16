@@ -1,0 +1,30 @@
+
+Workload: 8x8x8
+  modulo         elements=   128 bank_occupancy=[16, 16, 16, 16, 16, 16, 16, 16] max_local_addr=4103
+  split          elements=   128 bank_occupancy=[16, 16, 16, 16, 16, 16, 16, 16] max_local_addr=15
+  operand_aware  elements=   128 bank_occupancy=[16, 16, 16, 16, 16, 16, 16, 16] max_local_addr=4103
+  xor            elements=   128 bank_occupancy=[16, 16, 16, 16, 16, 16, 16, 16] max_local_addr=4103
+
+Workload: 13x17x29
+  modulo         elements=   714 bank_occupancy=[90, 90, 90, 90, 90, 88, 88, 88] max_local_addr=4157
+  split          elements=   714 bank_occupancy=[68, 51, 51, 51, 136, 119, 119, 119] max_local_addr=135
+  operand_aware  elements=   714 bank_occupancy=[102, 85, 85, 85, 102, 85, 85, 85] max_local_addr=4163
+  xor            elements=   714 bank_occupancy=[90, 90, 90, 90, 90, 88, 88, 88] max_local_addr=4184
+
+Workload: 32x32x32
+  modulo         elements=  2048 bank_occupancy=[256, 256, 256, 256, 256, 256, 256, 256] max_local_addr=4223
+  split          elements=  2048 bank_occupancy=[256, 256, 256, 256, 256, 256, 256, 256] max_local_addr=255
+  operand_aware  elements=  2048 bank_occupancy=[256, 256, 256, 256, 256, 256, 256, 256] max_local_addr=4223
+  xor            elements=  2048 bank_occupancy=[256, 256, 256, 256, 256, 256, 256, 256] max_local_addr=4223
+
+Workload: 64x64x64
+  modulo         elements=  8192 bank_occupancy=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024] max_local_addr=4607
+  split          elements=  8192 bank_occupancy=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024] max_local_addr=1023
+  operand_aware  elements=  8192 bank_occupancy=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024] max_local_addr=4607
+  xor            elements=  8192 bank_occupancy=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024] max_local_addr=4607
+
+Workload: 128x256x128
+  modulo         elements= 65536 bank_occupancy=[8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192] max_local_addr=8191
+  split          elements= 65536 bank_occupancy=[8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192] max_local_addr=8191
+  operand_aware  elements= 65536 bank_occupancy=[8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192] max_local_addr=8191
+  xor            elements= 65536 bank_occupancy=[8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192] max_local_addr=8191

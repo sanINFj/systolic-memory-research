@@ -1,0 +1,120 @@
+`timescale 1ns/1ps
+module bank_mapper_physical_tb;
+logic is_A;
+    logic [7:0] row, index;
+    logic [15:0] K, N;
+wire [2:0] bank0, bank1, bank2, bank3;
+    wire [12:0] addr0, addr1, addr2, addr3;
+// One bit per possible physical byte location, per policy.
+    reg seen [0:3][0:7][0:8191];
+integer M_dim, K_dim, N_dim;
+    integer p, b, a, i, k, j;
+    integer errors;
+    integer workload;
+bank_mapper #(.BANK_POLICY(0)) m0
+        (is_A, row, index, K, N, bank0, addr0);
+bank_mapper #(.BANK_POLICY(1)) m1
+        (is_A, row, index, K, N, bank1, addr1);
+bank_mapper #(.BANK_POLICY(2)) m2
+        (is_A, row, index, K, N, bank2, addr2);
+bank_mapper #(.BANK_POLICY(3)) m3
+        (is_A, row, index, K, N, bank3, addr3);
+task automatic check_element;
+        integer banks [0:3];
+        integer addrs [0:3];
+        integer raw_addrs [0:3];
+        integer q;
+        begin
+            #1;
+            banks[0] = bank0; addrs[0] = addr0;
+            banks[1] = bank1; addrs[1] = addr1;
+            banks[2] = bank2; addrs[2] = addr2;
+            banks[3] = bank3; addrs[3] = addr3;
+            raw_addrs[0] = m0.local_full;
+            raw_addrs[1] = m1.local_full;
+            raw_addrs[2] = m2.local_full;
+            raw_addrs[3] = m3.local_full;
+            for (q = 0; q <4; q = q + 1) begin
+                if (addrs[q]<0 || addrs[q] >= 8192) begin
+                    $display(
+                        "FAIL: policy=%0d invalid address=%0d",
+                        q, addrs[q]
+                    );
+                    errors = errors + 1;
+                end
+                else if (seen[q][banks[q]][addrs[q]]) begin
+                    $display(
+                        "FAIL: alias policy=%0d bank=%0d addr=%0d "
+                        "operand=%s row=%0d index=%0d K=%0d N=%0d",
+                        q, banks[q], addrs[q],
+                        is_A ? "A" : "B", row, index, K, N
+                    );
+                    errors = errors + 1;
+                end
+                else begin
+                    seen[q][banks[q]][addrs[q]] = 1'b1;
+                end
+            end
+        end
+    endtask
+task automatic run_workload(
+        input integer m_in,
+        input integer k_in,
+        input integer n_in
+    );
+        begin
+            M_dim = m_in;
+            K_dim = k_in;
+            N_dim = n_in;
+K = k_in;
+            N = n_in;
+            for (p = 0; p <4; p = p + 1)
+                for (b = 0; b<8; b = b + 1)
+                    for (a = 0; a<8192; a = a + 1)
+                        seen[p][b][a] = 1'b0;
+// A[M,K]
+            is_A = 1'b1;
+            for (i = 0; i<M_dim; i = i + 1) begin
+                for (k = 0; k<K_dim; k = k + 1) begin
+                    row = i;
+                    index = k;
+                    check_element();
+                end
+            end
+// B[K,N]
+            is_A = 1'b0;
+            for (k = 0; k<K_dim; k = k + 1) begin
+                for (j = 0; j<N_dim; j = j + 1) begin
+                    row = k;
+                    index = j;
+                    check_element();
+                end
+            end
+if (errors == 0)
+                $display(
+                    "PASS workload M=%0d K=%0d N=%0d",
+                    M_dim, K_dim, N_dim
+                );
+        end
+    endtask
+initial begin
+        is_A = 0;
+        row = 0;
+        index = 0;
+        K = 1;
+        N = 1;
+        errors = 0;
+run_workload(8, 8, 8);
+        run_workload(13, 17, 29);
+        run_workload(32, 32, 32);
+        run_workload(64, 64, 64);
+        run_workload(128, 256, 128);
+if (errors == 0) begin
+            $display("PASS: ALL PHYSICAL MAPPING TESTS");
+            $finish;
+        end
+        else begin
+            $fatal(1, "FAIL: %0d physical mapping errors", errors);
+        end
+    end
+endmodule

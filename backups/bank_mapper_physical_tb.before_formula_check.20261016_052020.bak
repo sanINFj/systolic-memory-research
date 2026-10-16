@@ -1,0 +1,142 @@
+`timescale 1ns/1ps
+
+module bank_mapper_physical_tb;
+
+    reg        is_A;
+    reg [7:0]  row;
+    reg [7:0]  index;
+    reg [15:0] K;
+    reg [15:0] N;
+
+    wire [2:0]  bank0, bank1, bank2, bank3;
+    wire [12:0] addr0, addr1, addr2, addr3;
+
+    integer errors;
+    integer q;
+    integer i;
+    integer j;
+
+    // One bit per physical byte: policy, bank, local address.
+    reg seen [0:3][0:7][0:8191];
+
+    bank_mapper #(.BANK_POLICY(0)) m0
+        (is_A, row, index, K, N, bank0, addr0);
+    bank_mapper #(.BANK_POLICY(1)) m1
+        (is_A, row, index, K, N, bank1, addr1);
+    bank_mapper #(.BANK_POLICY(2)) m2
+        (is_A, row, index, K, N, bank2, addr2);
+    bank_mapper #(.BANK_POLICY(3)) m3
+        (is_A, row, index, K, N, bank3, addr3);
+
+    task automatic check_element;
+        integer banks [0:3];
+        integer addrs [0:3];
+        integer raw_addrs [0:3];
+        integer p;
+        begin
+            #1;
+
+            banks[0] = bank0;
+            banks[1] = bank1;
+            banks[2] = bank2;
+            banks[3] = bank3;
+
+            addrs[0] = addr0;
+            addrs[1] = addr1;
+            addrs[2] = addr2;
+            addrs[3] = addr3;
+
+            raw_addrs[0] = m0.local_full;
+            raw_addrs[1] = m1.local_full;
+            raw_addrs[2] = m2.local_full;
+            raw_addrs[3] = m3.local_full;
+
+            for (p = 0; p < 4; p = p + 1) begin
+                if (raw_addrs[p] < 0 || raw_addrs[p] >= 8192) begin
+                    $display(
+                        "FAIL: policy=%0d invalid local address=%0d",
+                        p, raw_addrs[p]
+                    );
+                    errors = errors + 1;
+                end
+                else if (seen[p][banks[p]][addrs[p]]) begin
+                    $display(
+                        "FAIL: alias policy=%0d bank=%0d addr=%0d operand=%0d row=%0d index=%0d K=%0d N=%0d",
+                        p, banks[p], addrs[p],
+                        is_A, row, index, K, N
+                    );
+                    errors = errors + 1;
+                end
+                else begin
+                    seen[p][banks[p]][addrs[p]] = 1'b1;
+                end
+            end
+        end
+    endtask
+
+    task automatic run_workload;
+        input integer M;
+        input integer Kdim;
+        input integer Ndim;
+        integer r;
+        integer c;
+        begin
+            // Clear occupancy for each workload.
+            for (i = 0; i < 4; i = i + 1)
+                for (j = 0; j < 8; j = j + 1)
+                    for (q = 0; q < 8192; q = q + 1)
+                        seen[i][j][q] = 1'b0;
+
+            K = Kdim;
+            N = Ndim;
+
+            $display(
+                "Checking workload M=%0d K=%0d N=%0d",
+                M, Kdim, Ndim
+            );
+
+            // A matrix: M x K
+            is_A = 1'b1;
+            for (r = 0; r < M; r = r + 1) begin
+                for (c = 0; c < Kdim; c = c + 1) begin
+                    row = r;
+                    index = c;
+                    check_element();
+                end
+            end
+
+            // B matrix: K x N
+            is_A = 1'b0;
+            for (r = 0; r < Kdim; r = r + 1) begin
+                for (c = 0; c < Ndim; c = c + 1) begin
+                    row = r;
+                    index = c;
+                    check_element();
+                end
+            end
+        end
+    endtask
+
+    initial begin
+        is_A = 1'b1;
+        row = 0;
+        index = 0;
+        K = 1;
+        N = 1;
+        errors = 0;
+
+        run_workload(8, 8, 8);
+        run_workload(13, 17, 29);
+        run_workload(128, 256, 128);
+
+        if (errors == 0) begin
+            $display("PASS: all tested policies have no aliases or bank-capacity violations");
+            $finish;
+        end
+        else begin
+            $display("FAIL: total mapping errors = %0d", errors);
+            $fatal(1);
+        end
+    end
+
+endmodule

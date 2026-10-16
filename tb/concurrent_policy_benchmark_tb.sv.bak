@@ -1,0 +1,280 @@
+`timescale 1ns/1ps
+
+module concurrent_policy_benchmark_tb #(
+    parameter integer BANK_POLICY = 0
+);
+
+    localparam integer NUM_BANKS = 8;
+    localparam integer LANES = 16;
+    localparam integer ADDR_WIDTH = 13;
+    localparam integer TAG_WIDTH = 8;
+    localparam integer M = 8;
+    localparam integer K = 8;
+    localparam integer N = 8;
+    localparam integer TOTAL = M*K + K*N;
+
+    reg clk = 0;
+    reg rst = 1;
+
+    reg [LANES-1:0] req_valid = 0;
+    reg [2:0] req_bank [LANES];
+    reg [LANES*ADDR_WIDTH-1:0] req_addr = 0;
+    reg [LANES*TAG_WIDTH-1:0] req_tag = 0;
+
+    wire [NUM_BANKS-1:0] rsp_valid;
+    wire [NUM_BANKS*8-1:0] rsp_data;
+    wire [NUM_BANKS*TAG_WIDTH-1:0] rsp_tag;
+    wire overflow;
+
+    reg is_A;
+    reg [7:0] row;
+    reg [7:0] index;
+    reg [15:0] map_K;
+    reg [15:0] map_N;
+    wire [2:0] mapped_bank;
+    wire [12:0] mapped_addr;
+
+    integer expected_data [0:TOTAL-1];
+    integer expected_seen [0:TOTAL-1];
+
+    integer i, j, lane, cycle;
+    integer sent, received, errors, outstanding;
+    integer batch_count, total_cycles, max_outstanding;
+    integer response_id;
+    integer policy_file;
+
+    reg [31:0] global_addr;
+
+    always #5 clk = ~clk;
+
+    bank_mapper #(
+        .BANK_POLICY(BANK_POLICY)
+    ) mapper (
+        .is_A(is_A),
+        .row(row),
+        .index(index),
+        .K(map_K),
+        .N(map_N),
+        .bank(mapped_bank),
+        .local_addr(mapped_addr)
+    );
+
+    banked_sram #(
+        .NUM_BANKS(NUM_BANKS),
+        .BANK_SIZE(8192),
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .TAG_WIDTH(TAG_WIDTH),
+        .ENQ_WIDTH(LANES),
+        .FIFO_DEPTH(32)
+    ) dut (
+        .clk(clk),
+        .rst(rst),
+        .req_valid(req_valid),
+        .req_bank(req_bank),
+        .req_addr(req_addr),
+        .req_tag(req_tag),
+        .rsp_valid(rsp_valid),
+        .rsp_data(rsp_data),
+        .rsp_tag(rsp_tag),
+        .overflow(overflow)
+    );
+
+    task automatic clear_requests;
+        integer x;
+        begin
+            req_valid = 0;
+            req_addr = 0;
+            req_tag = 0;
+            for (x=0; x<LANES; x=x+1)
+                req_bank[x] = 0;
+        end
+    endtask
+
+    task automatic enqueue_operand(
+        input integer operand_id,
+        input integer operand_is_A,
+        input integer operand_row,
+        input integer operand_index
+    );
+        begin
+            is_A = operand_is_A;
+            row = operand_row;
+            index = operand_index;
+            map_K = K;
+            map_N = N;
+            #1;
+
+            req_valid[lane] = 1'b1;
+            req_bank[lane] = mapped_bank;
+            req_addr[lane*ADDR_WIDTH +: ADDR_WIDTH] = mapped_addr;
+            req_tag[lane*TAG_WIDTH +: TAG_WIDTH] = operand_id[TAG_WIDTH-1:0];
+            expected_data[operand_id] = (operand_is_A ? 8'h20 : 8'h80)
+                                          + ((operand_row*7 + operand_index*3) & 8'h3f);
+        end
+    endtask
+
+    initial begin
+        errors = 0;
+        sent = 0;
+        received = 0;
+        cycle = 0;
+        outstanding = 0;
+        max_outstanding = 0;
+        total_cycles = 0;
+        clear_requests();
+
+        for (i=0; i<TOTAL; i=i+1) begin
+            expected_seen[i] = 0;
+            expected_data[i] = 0;
+        end
+
+        // Initialize all bank memories with deterministic data.
+        // The data pattern is also recorded per expected request.
+        for (i=0; i<NUM_BANKS; i=i+1)
+            for (j=0; j<8192; j=j+1)
+                dut.mem[i][j] = 0;
+
+        // Reset.
+        repeat (4) @(negedge clk);
+        rst = 0;
+
+        // Initialize operand values at the physical addresses selected
+        // by this policy, using the same mapper as the request generator.
+        for (i=0; i<M; i=i+1) begin
+            for (j=0; j<K; j=j+1) begin
+                is_A = 1;
+                row = i;
+                index = j;
+                map_K = K;
+                map_N = N;
+                #1;
+                dut.mem[mapped_bank][mapped_addr] =
+                    (8'h20 + ((i*7 + j*3) & 8'h3f));
+            end
+        end
+
+        for (i=0; i<K; i=i+1) begin
+            for (j=0; j<N; j=j+1) begin
+                is_A = 0;
+                row = i;
+                index = j;
+                map_K = K;
+                map_N = N;
+                #1;
+                dut.mem[mapped_bank][mapped_addr] =
+                    (8'h80 + ((i*7 + j*3) & 8'h3f));
+            end
+        end
+
+        $display("Bank policy ID: %0d", BANK_POLICY);
+        $display("Concurrent operand-read workload: A=%0dx%0d, B=%0dx%0d",
+                 M, K, K, N);
+        $display("Total operand requests: %0d", TOTAL);
+
+        // Issue requests in batches of up to 16 in a single cycle.
+        // This creates genuine multi-lane enqueue pressure.
+        sent = 0;
+        while (sent < TOTAL) begin
+            @(negedge clk);
+            clear_requests();
+            lane = 0;
+
+            while (lane < LANES && sent < TOTAL) begin
+                if (sent < M*K) begin
+                    enqueue_operand(sent, 1, sent/K, sent%K);
+                end
+                else begin
+                    enqueue_operand(sent, 0,
+                                    (sent-M*K)/N,
+                                    (sent-M*K)%N);
+                end
+                lane = lane + 1;
+                sent = sent + 1;
+            end
+
+            @(posedge clk);
+            #1;
+            if (overflow) begin
+                $display("FAIL: FIFO overflow while issuing requests at cycle %0d", cycle);
+                errors = errors + 1;
+            end
+            cycle = cycle + 1;
+        end
+
+        @(negedge clk);
+        clear_requests();
+
+        // Collect every response and validate its tag and returned data.
+        // Timeout prevents a stalled design from hanging the benchmark.
+        received = 0;
+        total_cycles = 0;
+        while (received < TOTAL && total_cycles < 10000) begin
+            @(posedge clk);
+            #1;
+            total_cycles = total_cycles + 1;
+
+            if (overflow) begin
+                $display("FAIL: FIFO overflow observed during service");
+                errors = errors + 1;
+            end
+
+            for (i=0; i<NUM_BANKS; i=i+1) begin
+                if (rsp_valid[i]) begin
+                    response_id = rsp_tag[i*TAG_WIDTH +: TAG_WIDTH];
+
+                    if (response_id >= TOTAL) begin
+                        $display("FAIL: Invalid response tag %0d", response_id);
+                        errors = errors + 1;
+                    end
+                    else begin
+                        if (expected_seen[response_id] != 0) begin
+                            $display("FAIL: Duplicate response tag %0d", response_id);
+                            errors = errors + 1;
+                        end
+                        expected_seen[response_id] = 1;
+
+                        if (rsp_data[i*8 +: 8] !== expected_data[response_id][7:0]) begin
+                            $display("FAIL: tag=%0d expected=%02h got=%02h",
+                                response_id,
+                                expected_data[response_id][7:0],
+                                rsp_data[i*8 +: 8]);
+                            errors = errors + 1;
+                        end
+                        received = received + 1;
+                    end
+                end
+            end
+        end
+
+        if (received != TOTAL) begin
+            $display("FAIL: Timeout; received %0d of %0d responses",
+                     received, TOTAL);
+            errors = errors + 1;
+        end
+
+        for (i=0; i<TOTAL; i=i+1) begin
+            if (expected_seen[i] != 1) begin
+                $display("FAIL: Missing response for tag %0d", i);
+                errors = errors + 1;
+            end
+        end
+
+        if (errors == 0) begin
+            $display("PASS: all %0d concurrent-workload responses verified", TOTAL);
+        end
+        else begin
+            $display("FAIL: %0d errors", errors);
+        end
+
+        $display("Request issue cycles: %0d", (TOTAL+LANES-1)/LANES);
+        $display("Drain/response collection cycles: %0d", total_cycles);
+        $display("Total measured cycles (issue + drain): %0d",
+                 ((TOTAL+LANES-1)/LANES) + total_cycles);
+
+        if (errors == 0)
+            $finish;
+        else
+            $fatal(1, "Concurrent policy benchmark failed");
+    end
+
+endmodule

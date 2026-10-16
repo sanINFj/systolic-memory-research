@@ -1,206 +1,120 @@
-`timescale 1ns/1ps
-
-// ============================================================
-// SRAM Bank Mapping
-// ============================================================
-//
-// Fixed architecture:
-//
-//     8 banks
-//     8 KB per bank
-//
-// Policies:
-//
-//     0 = modulo
-//     1 = split
-//     2 = operand-aware
-//     3 = xor
-//
-// Operand convention:
-//
-//     A:
-//         row  = output row i
-//         index = K coordinate
-//
-//     B:
-//         row  = K coordinate
-//         index = output column j
-//
-// The mapping formulas match the Python banking_model.py.
-//
-// ============================================================
-
 module bank_mapper #(
-    parameter BANK_POLICY = 0
+    parameter integer BANK_POLICY = 0
 ) (
-    input logic is_A,
-
-    input logic [7:0] row,
-
-    input logic [7:0] index,
-
-    input logic [15:0] K,
-
-    input logic [15:0] N,
-
-    output logic [2:0] bank,
-
-    output logic [12:0] local_addr
+    input  wire        is_A,
+    input  wire [7:0]  row,
+    input  wire [7:0]  index,
+    input  wire [15:0] K,
+    input  wire [15:0] N,
+    output reg  [2:0]  bank,
+    output reg  [12:0] local_addr
 );
 
-    logic [31:0] global_addr;
+    // Policies:
+    // 0 = modulo interleaving
+    // 1 = split A/B banks
+    // 2 = operand-aware mapping
+    // 3 = XOR mapping
+    //
+    // local_full is retained at 32 bits so the testbench can detect
+    // addresses outside the 8192-byte physical bank capacity.
 
-    always_comb begin
+    reg [31:0] global_addr;
+    reg [31:0] local_full;
+    reg [31:0] row_value;
+    reg [31:0] index_value;
+    reg [31:0] k_value;
+    reg [31:0] n_value;
+    reg [31:0] groups;
+    reg [31:0] row_group;
+    reg [31:0] index_group;
 
-        global_addr = 32'd0;
+    always @* begin
+        row_value   = row;
+        index_value = index;
+        k_value     = (K == 0) ? 1 : K;
+        n_value     = (N == 0) ? 1 : N;
 
-        bank = 3'd0;
+        global_addr = 0;
+        local_full  = 0;
+        bank        = 0;
+        local_addr  = 0;
+        groups      = 0;
+        row_group   = 0;
+        index_group = 0;
 
-        // ----------------------------------------------------
-        // Physical row-major byte address.
-        //
-        // A:
-        //     address = row * K + index
-        //
-        // B:
-        //     address = 32768 + row * N + index
-        //
-        // B starts at 32 KB.
-        // ----------------------------------------------------
-
-        if (is_A) begin
-
-            global_addr =
-                row * K
-                + index;
-
-        end
-        else begin
-
-            global_addr =
-                32'd32768
-                + row * N
-                + index;
-
-        end
-
-        // ----------------------------------------------------
-        // Policy
-        // ----------------------------------------------------
+        if (is_A)
+            global_addr = row_value * k_value + index_value;
+        else
+            global_addr = 32'd32768 + row_value * n_value + index_value;
 
         case (BANK_POLICY)
 
-            // ----------------------------------------------
-            // MODULO
-            // ----------------------------------------------
-
+            // Policy 0: contiguous global byte layout, modulo-8 banks.
             0: begin
-
-                bank =
-                    global_addr[2:0];
-
+                bank       = global_addr[2:0];
+                local_full = global_addr >> 3;
             end
 
-            // ----------------------------------------------
-            // SPLIT
-            //
-            // A → banks 0..3
-            // B → banks 4..7
-            // ----------------------------------------------
-
+            // Policy 1: A uses banks 0-3; B uses banks 4-7.
             1: begin
-
                 if (is_A) begin
-
-                    bank =
-                        row[1:0];
-
+                    bank       = row_value % 4;
+                    local_full = (row_value / 4) * k_value + index_value;
                 end
                 else begin
-
-                    bank =
-                        3'b100
-                        | index[1:0];
-
+                    bank       = 4 + (index_value % 4);
+                    groups     = (n_value + 3) / 4;
+                    local_full = row_value * groups + (index_value / 4);
                 end
-
             end
 
-            // ----------------------------------------------
-            // OPERAND-AWARE
-            //
-            // A row i → bank i
-            // B column j → bank (j + 4) mod 8
-            // ----------------------------------------------
-
+            // Policy 2: A is banked by row; B is banked by column.
+            // The B region starts at local address 4096.
             2: begin
-
                 if (is_A) begin
-
-                    bank =
-                        row[2:0];
-
+                    bank       = row_value % 8;
+                    local_full = (row_value / 8) * k_value + index_value;
                 end
                 else begin
-
-                    bank =
-                        index[2:0]
-                        + 3'd4;
-
+                    bank       = (index_value + 4) % 8;
+                    groups     = (n_value + 7) / 8;
+                    local_full = 4096 + row_value * groups
+                                      + (index_value / 8);
                 end
-
             end
 
-            // ----------------------------------------------
-            // XOR
-            //
-            // A → row XOR K
-            // B → K XOR column
-            // ----------------------------------------------
-
+            // Policy 3: XOR bank selection with compact, collision-free
+            // local indexing for each bank.
             3: begin
-
                 if (is_A) begin
-
-                    bank =
-                        row[2:0]
-                        ^ index[2:0];
-
+                    bank       = (row_value[2:0] ^ index_value[2:0]);
+                    groups     = (k_value + 7) / 8;
+                    row_group  = row_value / 8;
+                    index_group = index_value / 8;
+                    local_full = row_group * groups * 8
+                               + index_group * 8
+                               + (row_value % 8);
                 end
                 else begin
-
-                    bank =
-                        row[2:0]
-                        ^ index[2:0];
-
+                    bank       = (row_value[2:0] ^ index_value[2:0]);
+                    groups     = (n_value + 7) / 8;
+                    row_group  = row_value / 8;
+                    index_group = index_value / 8;
+                    local_full = 4096
+                               + row_group * groups * 8
+                               + index_group * 8
+                               + (row_value % 8);
                 end
-
             end
 
             default: begin
-
-                bank = 3'd0;
-
+                bank       = 0;
+                local_full = 0;
             end
-
         endcase
 
-        // ----------------------------------------------------
-        // Local address.
-        //
-        // Each bank stores 8192 bytes.
-        //
-        // Divide physical byte address by 8 to obtain the
-        // bank-local word/byte index under interleaving.
-        //
-        // For split/operand-aware/xor, the bank organization
-        // is logical, so modulo-style physical local addressing
-        // is used as the first RTL model.
-        // ----------------------------------------------------
-
-        local_addr =
-            global_addr[15:3];
-
+        local_addr = local_full[12:0];
     end
 
 endmodule

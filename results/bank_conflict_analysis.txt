@@ -1,0 +1,46 @@
+BANK CONFLICT ANALYSIS
+Requests follow the testbench order: A row-major, then B row-major.
+A conflict is each request beyond the first targeting a bank in a batch.
+
+=== M=8, K=8, N=8 ===
+8x8x8 | Policy 0 (Modulo) | requests=128 | batches=8 | conflicted_batches=8 | extra_same_bank_requests=64 | max_requests_to_one_bank_per_batch=2
+  Bank totals: B0=16 B1=16 B2=16 B3=16 B4=16 B5=16 B6=16 B7=16
+  Conflicts per batch: [8, 8, 8, 8, 8, 8, 8, 8]
+8x8x8 | Policy 1 (Split A/B) | requests=128 | batches=8 | conflicted_batches=8 | extra_same_bank_requests=104 | max_requests_to_one_bank_per_batch=8
+  Bank totals: B0=16 B1=16 B2=16 B3=16 B4=16 B5=16 B6=16 B7=16
+  Conflicts per batch: [14, 14, 14, 14, 12, 12, 12, 12]
+8x8x8 | Policy 2 (Operand-aware) | requests=128 | batches=8 | conflicted_batches=8 | extra_same_bank_requests=88 | max_requests_to_one_bank_per_batch=8
+  Bank totals: B0=16 B1=16 B2=16 B3=16 B4=16 B5=16 B6=16 B7=16
+  Conflicts per batch: [14, 14, 14, 14, 8, 8, 8, 8]
+8x8x8 | Policy 3 (XOR) | requests=128 | batches=8 | conflicted_batches=8 | extra_same_bank_requests=64 | max_requests_to_one_bank_per_batch=2
+  Bank totals: B0=16 B1=16 B2=16 B3=16 B4=16 B5=16 B6=16 B7=16
+  Conflicts per batch: [8, 8, 8, 8, 8, 8, 8, 8]
+
+=== M=10, K=8, N=10 ===
+10x8x10 | Policy 0 (Modulo) | requests=160 | batches=10 | conflicted_batches=10 | extra_same_bank_requests=80 | max_requests_to_one_bank_per_batch=2
+  Bank totals: B0=20 B1=20 B2=20 B3=20 B4=20 B5=20 B6=20 B7=20
+  Conflicts per batch: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
+10x8x10 | Policy 1 (Split A/B) | requests=160 | batches=10 | conflicted_batches=10 | extra_same_bank_requests=130 | max_requests_to_one_bank_per_batch=8
+  Bank totals: B0=24 B1=24 B2=16 B3=16 B4=24 B5=24 B6=16 B7=16
+  Conflicts per batch: [14, 14, 14, 14, 14, 12, 12, 12, 12, 12]
+10x8x10 | Policy 2 (Operand-aware) | requests=160 | batches=10 | conflicted_batches=10 | extra_same_bank_requests=110 | max_requests_to_one_bank_per_batch=8
+  Bank totals: B0=24 B1=24 B2=16 B3=16 B4=24 B5=24 B6=16 B7=16
+  Conflicts per batch: [14, 14, 14, 14, 14, 8, 8, 8, 8, 8]
+10x8x10 | Policy 3 (XOR) | requests=160 | batches=10 | conflicted_batches=10 | extra_same_bank_requests=80 | max_requests_to_one_bank_per_batch=4
+  Bank totals: B0=20 B1=20 B2=20 B3=20 B4=20 B5=20 B6=20 B7=20
+  Conflicts per batch: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
+
+=== M=13, K=7, N=11 ===
+13x7x11 | Policy 0 (Modulo) | requests=168 | batches=11 | conflicted_batches=10 | extra_same_bank_requests=80 | max_requests_to_one_bank_per_batch=3
+  Bank totals: B0=22 B1=22 B2=22 B3=21 B4=21 B5=20 B6=20 B7=20
+  Conflicts per batch: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 0]
+13x7x11 | Policy 1 (Split A/B) | requests=168 | batches=11 | conflicted_batches=11 | extra_same_bank_requests=126 | max_requests_to_one_bank_per_batch=7
+  Bank totals: B0=28 B1=21 B2=21 B3=21 B4=21 B5=21 B6=21 B7=14
+  Conflicts per batch: [13, 13, 13, 12, 13, 10, 12, 12, 12, 12, 4]
+13x7x11 | Policy 2 (Operand-aware) | requests=168 | batches=11 | conflicted_batches=10 | extra_same_bank_requests=106 | max_requests_to_one_bank_per_batch=8
+  Bank totals: B0=21 B1=21 B2=21 B3=21 B4=28 B5=21 B6=21 B7=14
+  Conflicts per batch: [13, 13, 13, 12, 13, 10, 8, 8, 8, 8, 0]
+13x7x11 | Policy 3 (XOR) | requests=168 | batches=11 | conflicted_batches=10 | extra_same_bank_requests=80 | max_requests_to_one_bank_per_batch=4
+  Bank totals: B0=22 B1=22 B2=22 B3=21 B4=21 B5=20 B6=20 B7=20
+  Conflicts per batch: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 0]
+
