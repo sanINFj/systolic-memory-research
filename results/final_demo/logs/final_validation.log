@@ -1,0 +1,38 @@
+===== 1. PYTHON MAPPING TESTS =====
+test_all_policies_have_no_aliases (tests.test_physical_mapping.PhysicalMappingTests.test_all_policies_have_no_aliases) ... ok
+test_every_element_is_inside_bank_capacity (tests.test_physical_mapping.PhysicalMappingTests.test_every_element_is_inside_bank_capacity) ... ok
+test_invalid_policy_is_rejected (tests.test_physical_mapping.PhysicalMappingTests.test_invalid_policy_is_rejected) ... ok
+test_out_of_range_matrix_column_is_rejected (tests.test_physical_mapping.PhysicalMappingTests.test_out_of_range_matrix_column_is_rejected) ... ok
+test_oversized_bank_layout_is_rejected (tests.test_physical_mapping.PhysicalMappingTests.test_oversized_bank_layout_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.521s
+
+OK
+===== 2. STALL-AWARE ARRAY TEST =====
+C[0][0]: expected=19 actual=19
+C[0][1]: expected=22 actual=22
+C[1][0]: expected=43 actual=43
+C[1][1]: expected=50 actual=50
+PASS: 2x2 stall-aware systolic GEMM
+tb/systolic_array_stall_tb.sv:129: $finish called at 140000 (1ps)
+===== 3. MEMORY-FED GEMM TEST =====
+Memory-fed GEMM benchmark: 8x8, policy 0
+Requests issued: 128
+Responses received: 128
+Logical compute steps: 8
+Response-drain cycles: 2
+PASS: memory responses and GEMM values verified
+tb/memory_fed_gemm_tb.sv:282: $finish called at 2600000 (1ps)
+===== 4. RESPONSE-GATED STREAMING GEMM =====
+Streaming memory-fed GEMM: 2x2, policy 0
+C[0][0]: expected=19 actual=19
+C[0][1]: expected=22 actual=22
+C[1][0]: expected=43 actual=43
+C[1][1]: expected=50 actual=50
+Requests issued: 8
+Responses received: 8
+Measured cycles (wait + compute/flush): 23
+Operand-wait/stall cycles: 16
+PASS: streaming memory-fed GEMM baseline
+tb/memory_fed_streaming_gemm_tb.sv:280: $finish called at 440000 (1ps)

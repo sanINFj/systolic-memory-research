@@ -1,0 +1,13 @@
+policy,M,K,N,requests,responses,total_cycles,requests_per_cycle,avg_response_latency_cycles,max_response_latency_cycles,overflow_cycles,bank_utilization_mean,max_fifo_occupancy_any_bank,full_cycles_all_banks_sum,all_responses_verified,source_log
+0,8,8,8,128,128,17,7.5294,5.0,9,0,0.941176,9,0,True,policy_0_8x8x8.log
+1,8,8,8,128,128,21,6.0952,7.25,14,0,0.761905,14,0,True,policy_1_8x8x8.log
+2,8,8,8,128,128,20,6.4,6.5,12,0,0.8,12,0,True,policy_2_8x8x8.log
+3,8,8,8,128,128,17,7.5294,5.0,9,0,0.941176,9,0,True,policy_3_8x8x8.log
+0,10,8,10,160,160,21,7.619,6.0,11,0,0.952381,11,0,True,policy_0_10x8x10.log
+1,10,8,10,160,160,30,5.3333,9.1,20,0,0.666667,20,0,True,policy_1_10x8x10.log
+2,10,8,10,160,160,27,5.9259,7.8,17,0,0.740741,17,0,True,policy_2_10x8x10.log
+3,10,8,10,160,160,21,7.619,6.0,11,0,0.952381,11,0,True,policy_3_10x8x10.log
+0,13,7,11,168,168,23,7.3043,6.255952,12,0,0.913043,12,0,True,policy_0_13x7x11.log
+1,13,7,11,168,168,29,5.7931,8.946429,23,0,0.724138,23,0,True,policy_1_13x7x11.log
+2,13,7,11,168,168,30,5.6,7.571429,19,0,0.7,19,0,True,policy_2_13x7x11.log
+3,13,7,11,168,168,23,7.3043,6.255952,12,0,0.913043,12,0,True,policy_3_13x7x11.log

@@ -1,0 +1,13 @@
+shape_MxKxN,policy_id,policy_name,requests,issue_cycles,post_issue_drain_cycles,total_measured_cycles,responses_verified,status
+8x8x8,0,Modulo,128,8,9,17,128,PASS
+8x8x8,1,Split A/B,128,8,13,21,128,PASS
+8x8x8,2,Operand-aware,128,8,12,20,128,PASS
+8x8x8,3,XOR,128,8,9,17,128,PASS
+10x8x10,0,Modulo,160,10,11,21,160,PASS
+10x8x10,1,Split A/B,160,10,20,30,160,PASS
+10x8x10,2,Operand-aware,160,10,17,27,160,PASS
+10x8x10,3,XOR,160,10,11,21,160,PASS
+13x7x11,0,Modulo,168,11,12,23,168,PASS
+13x7x11,1,Split A/B,168,11,18,29,168,PASS
+13x7x11,2,Operand-aware,168,11,19,30,168,PASS
+13x7x11,3,XOR,168,11,12,23,168,PASS

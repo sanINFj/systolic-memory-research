@@ -1,0 +1,93 @@
+
+Full GEMM SRAM Banking Model
+============================
+SRAM: 8 banks x 8 KB
+Bank service: 1 read/bank/cycle
+
+=========================================================================================================
+MAIN WORKLOADS
+=========================================================================================================
+
+square_32: M=32, K=32, N=32
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=     8192 service=     1248 ideal=     1120 stall=      624 excess=      128 maxload= 2
+split           requests=     8192 service=     1120 ideal=     1120 stall=      496 excess=        0 maxload= 2
+operand_aware   requests=     8192 service=     1120 ideal=     1120 stall=      496 excess=        0 maxload= 2
+
+square_64: M=64, K=64, N=64
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=    65536 service=     9088 ideal=     8576 stall=     4544 excess=      512 maxload= 2
+split           requests=    65536 service=     8576 ideal=     8576 stall=     4032 excess=        0 maxload= 2
+operand_aware   requests=    65536 service=     8576 ideal=     8576 stall=     4032 excess=        0 maxload= 2
+
+square_128: M=128, K=128, N=128
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=   524288 service=    69120 ideal=    67072 stall=    34560 excess=     2048 maxload= 2
+split           requests=   524288 service=    67072 ideal=    67072 stall=    32512 excess=        0 maxload= 2
+operand_aware   requests=   524288 service=    67072 ideal=    67072 stall=    32512 excess=        0 maxload= 2
+
+square_256: M=256, K=256, N=256
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=  4194304 service=   538624 ideal=   530432 stall=   269312 excess=     8192 maxload= 2
+split           requests=  4194304 service=   530432 ideal=   530432 stall=   261120 excess=        0 maxload= 2
+operand_aware   requests=  4194304 service=   530432 ideal=   530432 stall=   261120 excess=        0 maxload= 2
+
+input_heavy: M=256, K=64, N=64
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=   262144 service=    36352 ideal=    34304 stall=    18176 excess=     2048 maxload= 2
+split           requests=   262144 service=    34304 ideal=    34304 stall=    16128 excess=        0 maxload= 2
+operand_aware   requests=   262144 service=    34304 ideal=    34304 stall=    16128 excess=        0 maxload= 2
+
+weight_heavy: M=64, K=64, N=256
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=   262144 service=    36352 ideal=    34304 stall=    18176 excess=     2048 maxload= 2
+split           requests=   262144 service=    34304 ideal=    34304 stall=    16128 excess=        0 maxload= 2
+operand_aware   requests=   262144 service=    34304 ideal=    34304 stall=    16128 excess=        0 maxload= 2
+
+k_heavy: M=64, K=256, N=64
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=   262144 service=    33664 ideal=    33152 stall=    16832 excess=      512 maxload= 2
+split           requests=   262144 service=    33152 ideal=    33152 stall=    16320 excess=        0 maxload= 2
+operand_aware   requests=   262144 service=    33152 ideal=    33152 stall=    16320 excess=        0 maxload= 2
+
+rectangular_1: M=128, K=512, N=128
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=  2097152 service=   265728 ideal=   263680 stall=   132864 excess=     2048 maxload= 2
+split           requests=  2097152 service=   263680 ideal=   263680 stall=   130816 excess=        0 maxload= 2
+operand_aware   requests=  2097152 service=   263680 ideal=   263680 stall=   130816 excess=        0 maxload= 2
+
+rectangular_2: M=512, K=128, N=128
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=  2097152 service=   276480 ideal=   268288 stall=   138240 excess=     8192 maxload= 2
+split           requests=  2097152 service=   268288 ideal=   268288 stall=   130048 excess=        0 maxload= 2
+operand_aware   requests=  2097152 service=   268288 ideal=   268288 stall=   130048 excess=        0 maxload= 2
+
+=========================================================================================================
+EDGE / STRESS WORKLOADS
+=========================================================================================================
+
+edge_70x70x64: M=70, K=64, N=70
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=    80640 service=    11338 ideal=    10834 stall=     5589 excess=      504 maxload= 2
+split           requests=    80640 service=    10850 ideal=    10834 stall=     5101 excess=       16 maxload= 2
+operand_aware   requests=    80640 service=    10850 ideal=    10834 stall=     5101 excess=       16 maxload= 2
+
+edge_13x29x17: M=13, K=17, N=29
+Policy           Requests   Service     Ideal    Stalls    Excess MaxLoad
+---------------------------------------------------------------------------------------------------------
+modulo          requests=     1870 service=     1406 ideal=      310 stall=     1217 excess=     1096 maxload=12
+split           requests=     1870 service=      314 ideal=      310 stall=      125 excess=        4 maxload= 2
+operand_aware   requests=     1870 service=      314 ideal=      310 stall=      125 excess=        4 maxload= 2
+
+Results saved to:
+  results/full_gemm_banking_results.csv

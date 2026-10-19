@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="650" viewBox="0 0 1100 650">
+<rect width="100%" height="100%" fill="white"/>
+<text x="550.0" y="35" text-anchor="middle" font-family="Arial" font-size="24" font-weight="bold">Selected Tile Footprint by Workload</text>
+<text x="25" y="290.0" transform="rotate(-90 25 290.0)" text-anchor="middle" font-family="Arial" font-size="15">Tile footprint (bytes)</text>
+<line x1="100" y1="505.0" x2="1065" y2="505.0" stroke="#ddd"/>
+<text x="88" y="510.0" text-anchor="end" font-family="Arial" font-size="13">0</text>
+<line x1="100" y1="397.5" x2="1065" y2="397.5" stroke="#ddd"/>
+<text x="88" y="402.5" text-anchor="end" font-family="Arial" font-size="13">16916</text>
+<line x1="100" y1="290.0" x2="1065" y2="290.0" stroke="#ddd"/>
+<text x="88" y="295.0" text-anchor="end" font-family="Arial" font-size="13">33833</text>
+<line x1="100" y1="182.5" x2="1065" y2="182.5" stroke="#ddd"/>
+<text x="88" y="187.5" text-anchor="end" font-family="Arial" font-size="13">50749</text>
+<line x1="100" y1="75.0" x2="1065" y2="75.0" stroke="#ddd"/>
+<text x="88" y="80.0" text-anchor="end" font-family="Arial" font-size="13">67666</text>
+<rect x="123.93181818181819" y="465.95641646489105" width="39.86363636363637" height="39.04358353510896" fill="#3569a8"/>
+<text x="143.86363636363637" y="459.95641646489105" text-anchor="middle" font-family="Arial" font-size="11">6144</text>
+<text x="143.86363636363637" y="530" text-anchor="middle" font-family="Arial" font-size="13">square_32</text>
+<rect x="211.6590909090909" y="348.8256658595642" width="39.86363636363637" height="156.17433414043583" fill="#3569a8"/>
+<text x="231.5909090909091" y="342.8256658595642" text-anchor="middle" font-family="Arial" font-size="11">24576</text>
+<text x="231.5909090909091" y="530" text-anchor="middle" font-family="Arial" font-size="13">square_64</text>
+<rect x="299.3863636363637" y="140.59322033898303" width="39.86363636363637" height="364.40677966101697" fill="#3569a8"/>
+<text x="319.31818181818187" y="134.59322033898303" text-anchor="middle" font-family="Arial" font-size="11">57344</text>
+<text x="319.31818181818187" y="530" text-anchor="middle" font-family="Arial" font-size="13">square_128</text>
+<rect x="387.1136363636364" y="140.59322033898303" width="39.86363636363637" height="364.40677966101697" fill="#3569a8"/>
+<text x="407.04545454545456" y="134.59322033898303" text-anchor="middle" font-family="Arial" font-size="11">57344</text>
+<text x="407.04545454545456" y="530" text-anchor="middle" font-family="Arial" font-size="13">square_256</text>
+<rect x="474.8409090909091" y="218.68038740920093" width="39.86363636363637" height="286.31961259079907" fill="#3569a8"/>
+<text x="494.7727272727273" y="212.68038740920093" text-anchor="middle" font-family="Arial" font-size="11">45056</text>
+<text x="494.7727272727273" y="530" text-anchor="middle" font-family="Arial" font-size="13">input_heavy</text>
+<rect x="562.5681818181819" y="218.68038740920093" width="39.86363636363637" height="286.31961259079907" fill="#3569a8"/>
+<text x="582.5" y="212.68038740920093" text-anchor="middle" font-family="Arial" font-size="11">45056</text>
+<text x="582.5" y="530" text-anchor="middle" font-family="Arial" font-size="13">weight_heavy</text>
+<rect x="650.2954545454546" y="192.65133171912834" width="39.86363636363637" height="312.34866828087166" fill="#3569a8"/>
+<text x="670.2272727272727" y="186.65133171912834" text-anchor="middle" font-family="Arial" font-size="11">49152</text>
+<text x="670.2272727272727" y="530" text-anchor="middle" font-family="Arial" font-size="13">k_heavy</text>
+<rect x="738.0227272727274" y="140.59322033898303" width="39.86363636363637" height="364.40677966101697" fill="#3569a8"/>
+<text x="757.9545454545455" y="134.59322033898303" text-anchor="middle" font-family="Arial" font-size="11">57344</text>
+<text x="757.9545454545455" y="530" text-anchor="middle" font-family="Arial" font-size="13">rectangular_1</text>
+<rect x="825.7500000000001" y="140.59322033898303" width="39.86363636363637" height="364.40677966101697" fill="#3569a8"/>
+<text x="845.6818181818182" y="134.59322033898303" text-anchor="middle" font-family="Arial" font-size="11">57344</text>
+<text x="845.6818181818182" y="530" text-anchor="middle" font-family="Arial" font-size="13">rectangular_2</text>
+<rect x="913.4772727272729" y="323.5083421610169" width="39.86363636363637" height="181.49165783898306" fill="#3569a8"/>
+<text x="933.409090909091" y="317.5083421610169" text-anchor="middle" font-family="Arial" font-size="11">28560</text>
+<text x="933.409090909091" y="530" text-anchor="middle" font-family="Arial" font-size="13">edge_70x70x64</text>
+<rect x="1001.2045454545456" y="490.87974566812954" width="39.86363636363637" height="14.120254331870461" fill="#3569a8"/>
+<text x="1021.1363636363637" y="484.87974566812954" text-anchor="middle" font-family="Arial" font-size="11">2222</text>
+<text x="1021.1363636363637" y="530" text-anchor="middle" font-family="Arial" font-size="13">edge_13x29x17</text>
+<rect x="110" y="573" width="15" height="15" fill="#3569a8"/>
+<text x="132" y="585" font-family="Arial" font-size="13">Tile footprint</text>
+</svg>

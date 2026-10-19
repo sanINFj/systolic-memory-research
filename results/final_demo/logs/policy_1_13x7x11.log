@@ -1,0 +1,18 @@
+Bank policy ID: 1
+Concurrent operand-read workload: A=13x7, B=7x11
+Total operand requests: 168
+PASS: all 168 concurrent-workload responses verified
+Request issue cycles: 11
+Drain/response collection cycles: 18
+Total measured cycles: 29
+PERF_SUMMARY,policy=1,M=13,K=7,N=11,requests=168,responses=168,cycles=29,latency_avg=8.946429,latency_max=23,overflow_cycles=0
+BANK_METRICS,bank,requests,busy_cycles,utilization,max_fifo,avg_fifo,full_cycles
+BANK_METRICS,0,28,28,0.965517,23,11.724138,0
+BANK_METRICS,1,21,21,0.724138,17,6.551724,0
+BANK_METRICS,2,21,21,0.724138,17,6.310345,0
+BANK_METRICS,3,21,21,0.724138,17,6.620690,0
+BANK_METRICS,4,21,21,0.724138,16,6.137931,0
+BANK_METRICS,5,21,21,0.724138,16,6.068966,0
+BANK_METRICS,6,21,21,0.724138,16,6.034483,0
+BANK_METRICS,7,14,14,0.482759,9,2.379310,0
+tb/concurrent_policy_perf_tb.sv:419: $finish called at 6702000 (1ps)

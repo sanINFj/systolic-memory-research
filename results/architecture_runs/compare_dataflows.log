@@ -1,0 +1,64 @@
+
+OS / WS × SRAM BANKING COMPARISON
+=========================================================================================================
+DF       K            Policy     Req   Service    Stall  WeightLd    Input
+---------------------------------------------------------------------------------------------------------
+OS       8            modulo     128        30       15         0        0
+OS       8             split     128        22        7         0        0
+OS       8     operand_aware     128        22        7         0        0
+OS       8               xor     128        92       77         0        0
+WS       8            modulo     128        72       56         0       56
+WS       8             split     128        32       16         8        8
+WS       8     operand_aware     128        16        0         0        0
+WS       8               xor     128        16        0         0        0
+OS      32            modulo     512        78       39         0        0
+OS      32             split     512        70       31         0        0
+OS      32     operand_aware     512        70       31         0        0
+OS      32               xor     512       332      293         0        0
+WS      32            modulo     512       288      224         0      224
+WS      32             split     512       128       64        32       32
+WS      32     operand_aware     512        64        0         0        0
+WS      32               xor     512        64        0         0        0
+OS      64            modulo    1024       142       71         0        0
+OS      64             split    1024       134       63         0        0
+OS      64     operand_aware    1024       134       63         0        0
+OS      64               xor    1024       652      581         0        0
+WS      64            modulo    1024       576      448         0      448
+WS      64             split    1024       256      128        64       64
+WS      64     operand_aware    1024       128        0         0        0
+WS      64               xor    1024       128        0         0        0
+OS     128            modulo    2048       270      135         0        0
+OS     128             split    2048       262      127         0        0
+OS     128     operand_aware    2048       262      127         0        0
+OS     128               xor    2048      1292     1157         0        0
+WS     128            modulo    2048      1152      896         0      896
+WS     128             split    2048       512      256       128      128
+WS     128     operand_aware    2048       256        0         0        0
+WS     128               xor    2048       256        0         0        0
+OS     256            modulo    4096       526      263         0        0
+OS     256             split    4096       518      255         0        0
+OS     256     operand_aware    4096       518      255         0        0
+OS     256               xor    4096      2572     2309         0        0
+WS     256            modulo    4096      2304     1792         0     1792
+WS     256             split    4096      1024      512       256      256
+WS     256     operand_aware    4096       512        0         0        0
+WS     256               xor    4096       512        0         0        0
+
+=========================================================================================================
+Detailed sanity check: K=8
+=========================================================================================================
+
+Dataflow: OS
+K=8 M=8 N=8
+Banking: split
+
+Phase breakdown:
+  compute         requests=  128 service=   22 stall=    7
+
+Dataflow: WS
+K=8 M=8 N=8
+Banking: split
+
+Phase breakdown:
+  weight_load     requests=   64 service=   16 stall=    8
+  input_stream    requests=   64 service=   16 stall=    8

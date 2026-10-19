@@ -1,0 +1,87 @@
+
+Combined Capacity and Banking Analysis
+=======================================
+Policies: modulo, split, operand_aware
+Metrics: modeled traffic and bank service, reported separately
+WARNING: analytical estimates, not RTL performance measurements
+
+square_32: baseline=(8, 8, 8), selected=(32, 32, 32)
+  modulo         fixed_8x8          bytes=    12,288 service=    1,920 ideal=    1,408 excess=     512
+  modulo         capacity_selected  bytes=     6,144 service=    1,248 ideal=    1,120 excess=     128
+  split          fixed_8x8          bytes=    12,288 service=    1,408 ideal=    1,408 excess=       0
+  split          capacity_selected  bytes=     6,144 service=    1,120 ideal=    1,120 excess=       0
+  operand_aware  fixed_8x8          bytes=    12,288 service=    1,408 ideal=    1,408 excess=       0
+  operand_aware  capacity_selected  bytes=     6,144 service=    1,120 ideal=    1,120 excess=       0
+square_64: baseline=(8, 8, 8), selected=(64, 64, 64)
+  modulo         fixed_8x8          bytes=    81,920 service=   15,360 ideal=   11,264 excess=   4,096
+  modulo         capacity_selected  bytes=    24,576 service=    9,088 ideal=    8,576 excess=     512
+  split          fixed_8x8          bytes=    81,920 service=   11,264 ideal=   11,264 excess=       0
+  split          capacity_selected  bytes=    24,576 service=    8,576 ideal=    8,576 excess=       0
+  operand_aware  fixed_8x8          bytes=    81,920 service=   11,264 ideal=   11,264 excess=       0
+  operand_aware  capacity_selected  bytes=    24,576 service=    8,576 ideal=    8,576 excess=       0
+square_128: baseline=(8, 8, 8), selected=(64, 128, 128)
+  modulo         fixed_8x8          bytes=   589,824 service=  122,880 ideal=   90,112 excess=  32,768
+  modulo         capacity_selected  bytes=   114,688 service=   69,120 ideal=   67,072 excess=   2,048
+  split          fixed_8x8          bytes=   589,824 service=   90,112 ideal=   90,112 excess=       0
+  split          capacity_selected  bytes=   114,688 service=   67,072 ideal=   67,072 excess=       0
+  operand_aware  fixed_8x8          bytes=   589,824 service=   90,112 ideal=   90,112 excess=       0
+  operand_aware  capacity_selected  bytes=   114,688 service=   67,072 ideal=   67,072 excess=       0
+square_256: baseline=(8, 8, 8), selected=(64, 128, 128)
+  modulo         fixed_8x8          bytes= 4,456,448 service=  983,040 ideal=  720,896 excess= 262,144
+  modulo         capacity_selected  bytes=   655,360 service=  552,960 ideal=  536,576 excess=  16,384
+  split          fixed_8x8          bytes= 4,456,448 service=  720,896 ideal=  720,896 excess=       0
+  split          capacity_selected  bytes=   655,360 service=  536,576 ideal=  536,576 excess=       0
+  operand_aware  fixed_8x8          bytes= 4,456,448 service=  720,896 ideal=  720,896 excess=       0
+  operand_aware  capacity_selected  bytes=   655,360 service=  536,576 ideal=  536,576 excess=       0
+input_heavy: baseline=(8, 8, 8), selected=(128, 64, 64)
+  modulo         fixed_8x8          bytes=   327,680 service=   61,440 ideal=   45,056 excess=  16,384
+  modulo         capacity_selected  bytes=    90,112 service=   36,352 ideal=   34,304 excess=   2,048
+  split          fixed_8x8          bytes=   327,680 service=   45,056 ideal=   45,056 excess=       0
+  split          capacity_selected  bytes=    90,112 service=   34,304 ideal=   34,304 excess=       0
+  operand_aware  fixed_8x8          bytes=   327,680 service=   45,056 ideal=   45,056 excess=       0
+  operand_aware  capacity_selected  bytes=    90,112 service=   34,304 ideal=   34,304 excess=       0
+weight_heavy: baseline=(8, 8, 8), selected=(64, 64, 128)
+  modulo         fixed_8x8          bytes=   327,680 service=   61,440 ideal=   45,056 excess=  16,384
+  modulo         capacity_selected  bytes=    90,112 service=   36,352 ideal=   34,304 excess=   2,048
+  split          fixed_8x8          bytes=   327,680 service=   45,056 ideal=   45,056 excess=       0
+  split          capacity_selected  bytes=    90,112 service=   34,304 ideal=   34,304 excess=       0
+  operand_aware  fixed_8x8          bytes=   327,680 service=   45,056 ideal=   45,056 excess=       0
+  operand_aware  capacity_selected  bytes=    90,112 service=   34,304 ideal=   34,304 excess=       0
+k_heavy: baseline=(8, 8, 8), selected=(64, 256, 64)
+  modulo         fixed_8x8          bytes=   278,528 service=   61,440 ideal=   45,056 excess=  16,384
+  modulo         capacity_selected  bytes=    49,152 service=   33,664 ideal=   33,152 excess=     512
+  split          fixed_8x8          bytes=   278,528 service=   45,056 ideal=   45,056 excess=       0
+  split          capacity_selected  bytes=    49,152 service=   33,152 ideal=   33,152 excess=       0
+  operand_aware  fixed_8x8          bytes=   278,528 service=   45,056 ideal=   45,056 excess=       0
+  operand_aware  capacity_selected  bytes=    49,152 service=   33,152 ideal=   33,152 excess=       0
+rectangular_1: baseline=(8, 8, 8), selected=(64, 128, 128)
+  modulo         fixed_8x8          bytes= 2,162,688 service=  491,520 ideal=  360,448 excess= 131,072
+  modulo         capacity_selected  bytes=   262,144 service=  276,480 ideal=  268,288 excess=   8,192
+  split          fixed_8x8          bytes= 2,162,688 service=  360,448 ideal=  360,448 excess=       0
+  split          capacity_selected  bytes=   262,144 service=  268,288 ideal=  268,288 excess=       0
+  operand_aware  fixed_8x8          bytes= 2,162,688 service=  360,448 ideal=  360,448 excess=       0
+  operand_aware  capacity_selected  bytes=   262,144 service=  268,288 ideal=  268,288 excess=       0
+rectangular_2: baseline=(8, 8, 8), selected=(64, 128, 128)
+  modulo         fixed_8x8          bytes= 2,359,296 service=  491,520 ideal=  360,448 excess= 131,072
+  modulo         capacity_selected  bytes=   458,752 service=  276,480 ideal=  268,288 excess=   8,192
+  split          fixed_8x8          bytes= 2,359,296 service=  360,448 ideal=  360,448 excess=       0
+  split          capacity_selected  bytes=   458,752 service=  268,288 ideal=  268,288 excess=       0
+  operand_aware  fixed_8x8          bytes= 2,359,296 service=  360,448 ideal=  360,448 excess=       0
+  operand_aware  capacity_selected  bytes=   458,752 service=  268,288 ideal=  268,288 excess=       0
+edge_70x70x64: baseline=(8, 8, 8), selected=(70, 64, 70)
+  modulo         fixed_8x8          bytes=   100,240 service=   18,128 ideal=   14,096 excess=   4,032
+  modulo         capacity_selected  bytes=    28,560 service=   11,338 ideal=   10,834 excess=     504
+  split          fixed_8x8          bytes=   100,240 service=   14,224 ideal=   14,096 excess=     128
+  split          capacity_selected  bytes=    28,560 service=   10,850 ideal=   10,834 excess=      16
+  operand_aware  fixed_8x8          bytes=   100,240 service=   14,224 ideal=   14,096 excess=     128
+  operand_aware  capacity_selected  bytes=    28,560 service=   10,850 ideal=   10,834 excess=      16
+edge_13x29x17: baseline=(8, 8, 8), selected=(13, 17, 29)
+  modulo         fixed_8x8          bytes=     3,378 service=    1,418 ideal=      393 excess=   1,025
+  modulo         capacity_selected  bytes=     2,222 service=    1,406 ideal=      310 excess=   1,096
+  split          fixed_8x8          bytes=     3,378 service=      401 ideal=      393 excess=       8
+  split          capacity_selected  bytes=     2,222 service=      314 ideal=      310 excess=       4
+  operand_aware  fixed_8x8          bytes=     3,378 service=      401 ideal=      393 excess=       8
+  operand_aware  capacity_selected  bytes=     2,222 service=      314 ideal=      310 excess=       4
+
+Saved 66 experiment rows to results/combined_tile_banking_results.csv
+PASS: all evaluated configurations satisfy the modeled capacity limit.
