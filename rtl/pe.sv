@@ -9,6 +9,7 @@ module pe #(
 
     input  logic signed [DATA_WIDTH-1:0] a_in,
     input  logic signed [DATA_WIDTH-1:0] b_in,
+    input  logic valid_in,
 
     output logic signed [DATA_WIDTH-1:0] a_out,
     output logic signed [DATA_WIDTH-1:0] b_out,
