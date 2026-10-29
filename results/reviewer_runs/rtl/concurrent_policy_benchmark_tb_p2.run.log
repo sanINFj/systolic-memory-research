@@ -1,0 +1,8 @@
+Bank policy ID: 2
+Concurrent operand-read workload: A=8x8, B=8x8
+Total operand requests: 128
+PASS: all 128 concurrent-workload responses verified
+Request issue cycles: 8
+Drain/response collection cycles: 12
+Total measured cycles: 20
+tb/concurrent_policy_benchmark_tb.sv:283: $finish called at 4902000 (1ps)

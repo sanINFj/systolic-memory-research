@@ -1,0 +1,7 @@
+Memory-fed GEMM benchmark: 8x8, policy 0
+Requests issued: 128
+Responses received: 128
+Logical compute steps: 8
+Response-drain cycles: 2
+PASS: memory responses and GEMM values verified
+tb/memory_fed_gemm_tb.sv:282: $finish called at 2600000 (1ps)

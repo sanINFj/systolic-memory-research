@@ -1,0 +1,7 @@
+Commit: 4349d7ffb73e63c2984daeec72609af51a2efe6f
+Branch: systolic-aware-banking
+Python 3.12.3
+Icarus Verilog version 12.0 (stable) ()
+
+Icarus Verilog runtime version 12.0 (stable) ()
+

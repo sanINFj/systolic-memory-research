@@ -1,0 +1,6 @@
+PASS/RAN: concurrent_policy_benchmark_tb
+PASS/RAN: concurrent_policy_perf_tb
+PASS/RAN: end_to_end_all_policies_tb
+PASS/RAN: memory_fed_gemm_tb
+PASS/RAN: memory_fed_stall_gemm_tb
+PASS/RAN: memory_fed_streaming_gemm_tb

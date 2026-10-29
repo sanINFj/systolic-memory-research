@@ -1,0 +1,25 @@
+VCD info: dumpfile results/end_to_end_policy_1.vcd opened for output.
+
+==============================================
+ END-TO-END: BANKED SRAM -> 8x8 SYSTOLIC ARRAY
+ Bank policy ID: 1 | SRAM capacity: 64 KB
+==============================================
+[1/3] Fetching matrix A from banked SRAM...
+[1/3] Fetching matrix B from banked SRAM...
+[1/3] All 128 operand bytes returned successfully.
+[2/3] Executing matrix multiplication...
+[3/3] Checking all 64 output elements...
+
+Output matrix C:
+204 240 276 312 348 384 420 456 
+240 284 328 372 416 460 504 548 
+276 328 380 432 484 536 588 640 
+312 372 432 492 552 612 672 732 
+348 416 484 552 620 688 756 824 
+384 460 536 612 688 764 840 916 
+420 504 588 672 756 840 924 1008 
+456 548 640 732 824 916 1008 1100 
+
+PASS: END-TO-END GEMM VERIFIED
+128 SRAM reads completed; 64/64 outputs match.
+tb/end_to_end_all_policies_tb.sv:293: $finish called at 4246000 (1ps)

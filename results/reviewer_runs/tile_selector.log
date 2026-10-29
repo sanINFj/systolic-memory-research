@@ -1,0 +1,23 @@
+
+Capacity-Aware GEMM Macro-Tile Selector
+=======================================
+Scratchpad capacity: 65,536 bytes
+Compute array: 8x8
+Objective: minimize modeled bytes, then tile loads
+
+All traffic values are estimates under the stated assumptions.
+
+square_32            tile=( 32, 32, 32) footprint= 6,144 B tiles=    1 traffic=     6,144 B vs_8x8= 50.00%
+square_64            tile=( 64, 64, 64) footprint=24,576 B tiles=    1 traffic=    24,576 B vs_8x8= 70.00%
+square_128           tile=( 64,128,128) footprint=57,344 B tiles=    2 traffic=   114,688 B vs_8x8= 80.56%
+square_256           tile=( 64,128,128) footprint=57,344 B tiles=   16 traffic=   655,360 B vs_8x8= 85.29%
+input_heavy          tile=(128, 64, 64) footprint=45,056 B tiles=    2 traffic=    90,112 B vs_8x8= 72.50%
+weight_heavy         tile=( 64, 64,128) footprint=45,056 B tiles=    2 traffic=    90,112 B vs_8x8= 72.50%
+k_heavy              tile=( 64,256, 64) footprint=49,152 B tiles=    1 traffic=    49,152 B vs_8x8= 82.35%
+rectangular_1        tile=( 64,128,128) footprint=57,344 B tiles=    8 traffic=   262,144 B vs_8x8= 87.88%
+rectangular_2        tile=( 64,128,128) footprint=57,344 B tiles=    8 traffic=   458,752 B vs_8x8= 80.56%
+edge_70x70x64        tile=( 70, 64, 70) footprint=28,560 B tiles=    1 traffic=    28,560 B vs_8x8= 71.51%
+edge_13x29x17        tile=( 13, 17, 29) footprint= 2,222 B tiles=    1 traffic=     2,222 B vs_8x8= 34.22%
+
+Results saved to results/capacity_tile_results.csv
+PASS: all selected working sets fit within 64 KiB.
