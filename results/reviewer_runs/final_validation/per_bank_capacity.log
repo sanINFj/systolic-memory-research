@@ -1,0 +1,48 @@
+PER-BANK CAPACITY CHECK (8 banks x 8192 bytes)
+Policy: P0=modulo P1=split P2=operand-aware P3=XOR
+square_32          P0: max_bank=  256 max_local_addr= 4223 PASS
+square_32          P1: max_bank=  256 max_local_addr=  255 PASS
+square_32          P2: max_bank=  256 max_local_addr= 4223 PASS
+square_32          P3: max_bank=  256 max_local_addr= 4223 PASS
+square_64          P0: max_bank= 1024 max_local_addr= 4607 PASS
+square_64          P1: max_bank= 1024 max_local_addr= 1023 PASS
+square_64          P2: max_bank= 1024 max_local_addr= 4607 PASS
+square_64          P3: max_bank= 1024 max_local_addr= 4607 PASS
+square_128         P0: max_bank= 3072 max_local_addr= 6143 PASS
+square_128         P1: max_bank= 4096 max_local_addr= 4095 PASS
+square_128         P2: max_bank= 3072 max_local_addr= 6143 PASS
+square_128         P3: max_bank= 3072 max_local_addr= 6143 PASS
+square_256         P0: max_bank= 3072 max_local_addr= 6143 PASS
+square_256         P1: max_bank= 4096 max_local_addr= 4095 PASS
+square_256         P2: max_bank= 3072 max_local_addr= 6143 PASS
+square_256         P3: max_bank= 3072 max_local_addr= 6143 PASS
+input_heavy        P0: max_bank= 1536 max_local_addr= 4607 PASS
+input_heavy        P1: max_bank= 2048 max_local_addr= 2047 PASS
+input_heavy        P2: max_bank= 1536 max_local_addr= 4607 PASS
+input_heavy        P3: max_bank= 1536 max_local_addr= 4607 PASS
+weight_heavy       P0: max_bank= 1536 max_local_addr= 5119 PASS
+weight_heavy       P1: max_bank= 2048 max_local_addr= 2047 PASS
+weight_heavy       P2: max_bank= 1536 max_local_addr= 5119 PASS
+weight_heavy       P3: max_bank= 1536 max_local_addr= 5119 PASS
+k_heavy            P0: max_bank= 4096 max_local_addr= 6143 PASS
+k_heavy            P1: max_bank= 4096 max_local_addr= 4095 PASS
+k_heavy            P2: max_bank= 4096 max_local_addr= 6143 PASS
+k_heavy            P3: max_bank= 4096 max_local_addr= 6143 PASS
+rectangular_1      P0: max_bank= 3072 max_local_addr= 6143 PASS
+rectangular_1      P1: max_bank= 4096 max_local_addr= 4095 PASS
+rectangular_1      P2: max_bank= 3072 max_local_addr= 6143 PASS
+rectangular_1      P3: max_bank= 3072 max_local_addr= 6143 PASS
+rectangular_2      P0: max_bank= 3072 max_local_addr= 6143 PASS
+rectangular_2      P1: max_bank= 4096 max_local_addr= 4095 PASS
+rectangular_2      P2: max_bank= 3072 max_local_addr= 6143 PASS
+rectangular_2      P3: max_bank= 3072 max_local_addr= 6143 PASS
+edge_70x70x64      P0: max_bank= 1120 max_local_addr= 4655 PASS
+edge_70x70x64      P1: max_bank= 1152 max_local_addr= 1151 PASS
+edge_70x70x64      P2: max_bank= 1152 max_local_addr= 4671 PASS
+edge_70x70x64      P3: max_bank= 1120 max_local_addr= 4671 PASS
+edge_13x29x17      P0: max_bank=   90 max_local_addr= 4157 PASS
+edge_13x29x17      P1: max_bank=  136 max_local_addr=  135 PASS
+edge_13x29x17      P2: max_bank=  102 max_local_addr= 4163 PASS
+edge_13x29x17      P3: max_bank=   90 max_local_addr= 4184 PASS
+
+TOTAL: 44/44 configurations passed
